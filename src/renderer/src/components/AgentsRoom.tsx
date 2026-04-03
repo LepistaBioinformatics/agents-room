@@ -1,0 +1,215 @@
+import { useState, useCallback } from 'react'
+import { RefreshCw, Trash2, PanelLeftClose, PanelLeft, Loader2 } from 'lucide-react'
+import type { AgentView, AgentMeta, CanvasPosition, TrashItemType, SkillItem } from '../types/agent'
+import type { WorkspaceEntry, WorkspaceItems } from '../types/agent'
+import { AgentsCanvas } from './AgentsCanvas'
+import { AgentDetailDrawer } from './AgentDetailDrawer'
+import { SkillDetailDrawer } from './SkillDetailDrawer'
+import { WorkspaceDetailDrawer } from './WorkspaceDetailDrawer'
+import { WorkspaceSidebar } from './WorkspaceSidebar'
+import { TrashPanel } from './TrashPanel'
+import { useTrash } from '../hooks/useTrash'
+import { cn } from '../lib/utils'
+
+interface LoadedWorkspace {
+  entry: WorkspaceEntry
+  items: WorkspaceItems
+  position: CanvasPosition
+  loading: boolean
+}
+
+interface Props {
+  workspaces: WorkspaceEntry[]
+  loadedWorkspaces: Map<string, LoadedWorkspace>
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+  onAddWorkspace: () => void
+  onRemoveWorkspace: (id: string) => void
+  onUpdateMeta: (id: string, meta: Partial<Pick<WorkspaceEntry, 'name' | 'emoji' | 'tags' | 'displayName' | 'avatarPath'>>) => void
+  onPositionChange: (id: string, pos: CanvasPosition) => void
+  onReloadAll: () => void
+  onReloadWorkspace: (id: string) => void
+  onSaveAgentMeta: (agentName: string, sourcePath: string, meta: Partial<AgentMeta>) => Promise<void>
+}
+
+export function AgentsRoom({
+  workspaces, loadedWorkspaces, sidebarOpen, setSidebarOpen,
+  onAddWorkspace, onRemoveWorkspace, onUpdateMeta, onPositionChange,
+  onReloadAll, onReloadWorkspace, onSaveAgentMeta
+}: Props): JSX.Element {
+  const [selectedAgent, setSelectedAgent] = useState<AgentView | null>(null)
+  const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null)
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
+  const selectedWorkspace = selectedWorkspaceId ? (workspaces.find((w) => w.id === selectedWorkspaceId) ?? null) : null
+  const [globalLoading, setGlobalLoading] = useState(false)
+
+  const reloadWorkspaceByPath = useCallback((workspacePath: string) => {
+    const ws = workspaces.find((w) => w.path === workspacePath)
+    if (ws) onReloadWorkspace(ws.id)
+  }, [workspaces, onReloadWorkspace])
+
+  const { trashItems, trashOpen, setTrashOpen, loadTrash, restore, deletePermanently } =
+    useTrash(reloadWorkspaceByPath)
+
+  const handleReload = async (): Promise<void> => {
+    setGlobalLoading(true)
+    await onReloadAll()
+    setGlobalLoading(false)
+  }
+
+  const handleTrash = useCallback(async (
+    srcPath: string, workspacePath: string, type: TrashItemType, name: string
+  ) => {
+    await window.electronAPI.items.trash(srcPath, workspacePath, type, name)
+    reloadWorkspaceByPath(workspacePath)
+  }, [reloadWorkspaceByPath])
+
+  const handleDuplicate = useCallback(async (srcPath: string, type: TrashItemType) => {
+    await window.electronAPI.items.duplicate(srcPath, type)
+    const ws = workspaces.find((w) => srcPath.includes(w.path) || w.path === '')
+    if (ws) onReloadWorkspace(ws.id)
+  }, [workspaces, onReloadWorkspace])
+
+  const handleCopy = useCallback(async (srcPath: string, targetPath: string, type: TrashItemType) => {
+    await window.electronAPI.items.copy(srcPath, targetPath, type)
+    const targetWs = workspaces.find((w) => w.path === targetPath)
+    if (targetWs) onReloadWorkspace(targetWs.id)
+  }, [workspaces, onReloadWorkspace])
+
+  const handleOpenTrash = (): void => {
+    loadTrash()
+    setTrashOpen(true)
+  }
+
+  const selectedAgentKey = selectedAgent
+    ? `${selectedAgent.name}::${selectedAgent.filePath}`
+    : null
+
+  const totalItems = Array.from(loadedWorkspaces.values()).reduce(
+    (sum, ws) => sum + ws.items.agents.length + ws.items.skills.length + ws.items.commands.length,
+    0
+  )
+
+  return (
+    <div className="flex h-screen flex-col bg-ag-bg text-ag-text-1">
+      {/* Toolbar */}
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-ag-border/60 bg-ag-surface/90 px-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="rounded-lg p-1.5 text-ag-text-3 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-2"
+            title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          >
+            {sidebarOpen ? <PanelLeftClose size={15} /> : <PanelLeft size={15} />}
+          </button>
+
+          <div className="h-4 w-px bg-ag-border" />
+
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 text-indigo-400">
+              <svg viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="8" cy="8" r="2.5" fill="currentColor" opacity="0.7" />
+              </svg>
+            </div>
+            <span className="text-sm font-semibold text-ag-text-1">Agents Room</span>
+          </div>
+
+          <span className="rounded-full bg-ag-surface-2 px-2 py-0.5 text-[10px] text-ag-text-3 tabular-nums">
+            {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''} · {totalItems} items
+          </span>
+
+          {globalLoading && <Loader2 size={12} className="animate-spin text-ag-text-3" />}
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleReload}
+            disabled={globalLoading}
+            title="Reload all"
+            className="rounded-lg p-1.5 text-ag-text-3 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-2 disabled:opacity-40"
+          >
+            <RefreshCw size={14} />
+          </button>
+          <button
+            onClick={handleOpenTrash}
+            title="Trash"
+            className={cn(
+              'relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs',
+              'text-ag-text-2 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-1'
+            )}
+          >
+            <Trash2 size={13} />
+            Trash
+            {trashItems.length > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white">
+                {trashItems.length}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <div
+          className="shrink-0 overflow-hidden transition-all duration-200"
+          style={{ width: sidebarOpen ? 256 : 0 }}
+        >
+          {sidebarOpen && (
+            <WorkspaceSidebar
+              workspaces={workspaces}
+              onAdd={onAddWorkspace}
+              onRemove={onRemoveWorkspace}
+              onUpdateMeta={onUpdateMeta}
+              onOpenDetails={(entry) => setSelectedWorkspaceId(entry.id)}
+            />
+          )}
+        </div>
+
+        {/* Canvas */}
+        <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 44px)' }}>
+          <AgentsCanvas
+            loadedWorkspaces={loadedWorkspaces}
+            workspaces={workspaces}
+            selectedAgentKey={selectedAgentKey}
+            onSelectAgent={setSelectedAgent}
+            onSelectSkill={setSelectedSkill}
+            onPositionChange={onPositionChange}
+            onTrash={handleTrash}
+            onDuplicate={handleDuplicate}
+            onCopy={handleCopy}
+          />
+        </div>
+      </div>
+
+      <AgentDetailDrawer
+        agent={selectedAgent}
+        onClose={() => setSelectedAgent(null)}
+        onSaveMeta={onSaveAgentMeta}
+      />
+
+      <SkillDetailDrawer
+        skill={selectedSkill}
+        onClose={() => setSelectedSkill(null)}
+      />
+
+      <WorkspaceDetailDrawer
+        workspace={selectedWorkspace}
+        onClose={() => setSelectedWorkspaceId(null)}
+        onUpdateMeta={onUpdateMeta}
+        onRemove={onRemoveWorkspace}
+      />
+
+      {trashOpen && (
+        <TrashPanel
+          items={trashItems}
+          onClose={() => setTrashOpen(false)}
+          onRestore={restore}
+          onDelete={deletePermanently}
+        />
+      )}
+    </div>
+  )
+}
