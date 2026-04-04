@@ -35,7 +35,7 @@
 
 | Feature | Status | Notes |
 |---|---|---|
-| **Skills install API** | 🔜 Next | Install Claude Code skills from GitHub URL or local folder into `~/.claude/skills/<name>/` |
+| **Skills install API** | ✅ Done | Install Claude Code skills from GitHub URL into `~/.claude/skills/<name>/`. Browse panel, trust tiers, origin badge, uninstall flow. |
 | Command detail view | Planned | Show content, usage |
 | Tag filtering on canvas | Planned | Filter boxes/cards by tag |
 | Search (name / model / tool) | Planned | Global search bar |

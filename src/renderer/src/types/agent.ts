@@ -31,6 +31,61 @@ export interface AgentView extends AgentWithRelations {
 
 // ── Skills ────────────────────────────────────────────────────────────────────
 
+export type TrustTier = 'trusted' | 'known' | 'unknown'
+
+export interface SkillMeta {
+  skillName: string
+  sourceUrl: string
+  sourceOwner: string
+  sourceRepo: string
+  sourcePath: string
+  sourceBranch: string
+  trustTier: TrustTier
+  installedAt: string
+}
+
+export interface GitHubRef {
+  owner: string
+  repo: string
+  path: string
+  branch: string
+}
+
+export interface GitHubRepoInfo {
+  stars: number
+  orgName: string | null
+  description: string | null
+  updatedAt: string
+}
+
+export interface RemoteSkillCard {
+  name: string
+  description: string
+  model: string | null
+  folderName: string
+  sourceUrl: string
+  files: string[]
+  isInstalled: boolean
+}
+
+export interface SkillSource {
+  id: string
+  name: string
+  description: string
+  owner: string
+  repo: string
+  path: string
+  branch: string
+  url: string
+}
+
+export interface SkillPreview {
+  skill: RemoteSkillCard
+  tier: TrustTier
+  repoInfo: GitHubRepoInfo | null
+  ref: GitHubRef
+}
+
 export interface SkillItem {
   name: string
   description: string
@@ -40,6 +95,7 @@ export interface SkillItem {
   folderPath: string          // full path to skill folder
   source: 'global' | 'workspace'
   workspacePath: string       // '' for global
+  meta?: SkillMeta | null
 }
 
 // ── Commands ──────────────────────────────────────────────────────────────────

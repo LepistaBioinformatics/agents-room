@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next'
 import type { AgentView } from '../types/agent'
-import { cn } from '../lib/utils'
+import { cn, truncate } from '../lib/utils'
 import { AvatarImg } from './AvatarImg'
+import { CardHoverButton } from './ui'
 import { cardShell, typeBadge } from '../lib/variants'
 import type { VariantProps } from 'class-variance-authority'
 
@@ -26,11 +28,8 @@ function modelBadgeClass(model: string | null): string {
   return key ? MODEL_BADGE[key] : typeBadge({ model: 'default' })
 }
 
-function truncate(text: string, max: number): string {
-  return text.length <= max ? text : text.slice(0, max).trimEnd() + '…'
-}
-
 export function AgentCard({ agent, isSelected, onOpen, onContextMenu, style }: Props): JSX.Element {
+  const { t } = useTranslation()
   const visibleTools = agent.tools.slice(0, 3)
   const extraTools = agent.tools.length - visibleTools.length
   const desc = truncate(agent.description.replace(/^\p{Emoji_Presentation}+\s*/u, ''), 90)
@@ -80,12 +79,7 @@ export function AgentCard({ agent, isSelected, onOpen, onContextMenu, style }: P
         </div>
       )}
 
-      <button
-        onClick={(e) => { e.stopPropagation(); onOpen() }}
-        className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 rounded-b-xl bg-indigo-600/90 py-1.5 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
-      >
-        Ver detalhes →
-      </button>
+      <CardHoverButton onClick={() => onOpen()} label={t('card.viewDetails')} color="indigo" />
 
       {agent.meta?.notes && (
         <div className="absolute bottom-2.5 right-2.5 h-1.5 w-1.5 rounded-full bg-indigo-400/80" />

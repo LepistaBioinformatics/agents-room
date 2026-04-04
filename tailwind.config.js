@@ -3,6 +3,19 @@ module.exports = {
   content: ['./src/renderer/src/**/*.{js,ts,jsx,tsx}', './src/renderer/index.html'],
   darkMode: 'media',
   theme: {
+    // Override all border radii to 0 — straight-edge design system.
+    // Only 'full' is kept for truly circular elements (avatars, dot indicators).
+    borderRadius: {
+      none:    '0px',
+      sm:      '0px',
+      DEFAULT: '0px',
+      md:      '0px',
+      lg:      '0px',
+      xl:      '0px',
+      '2xl':   '0px',
+      '3xl':   '0px',
+      full:    '9999px',
+    },
     extend: {
       colors: {
         ag: {

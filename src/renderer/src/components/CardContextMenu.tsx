@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
 import { Copy, Files, Trash2, ChevronRight } from 'lucide-react'
 import type { WorkspaceEntry } from '../types/agent'
@@ -40,6 +41,7 @@ export function CardContextMenu({
   x, y, workspaces, currentWorkspaceId,
   onClose, onCopy, onDuplicate, onTrash
 }: Props): JSX.Element {
+  const { t } = useTranslation()
   const menuRef = useRef<HTMLDivElement>(null)
   const [showCopySubmenu, setShowCopySubmenu] = useState(false)
 
@@ -70,14 +72,14 @@ export function CardContextMenu({
       ref={menuRef} style={style}
       className="min-w-[180px] overflow-visible rounded-xl border border-ag-border bg-ag-surface shadow-2xl shadow-black/30 py-1"
     >
-      <MenuItem icon={<Files size={13} />} label="Duplicate" onClick={() => { onDuplicate(); onClose() }} />
+      <MenuItem icon={<Files size={13} />} label={t('contextMenu.duplicate')} onClick={() => { onDuplicate(); onClose() }} />
 
       <div className="relative"
         onMouseEnter={() => setShowCopySubmenu(true)}
         onMouseLeave={() => setShowCopySubmenu(false)}
       >
         <MenuItem
-          icon={<Copy size={13} />} label="Copy to workspace"
+          icon={<Copy size={13} />} label={t('contextMenu.copyToWorkspace')}
           right={<ChevronRight size={12} className="text-ag-text-3" />}
           disabled={targets.length === 0}
         />
@@ -98,7 +100,7 @@ export function CardContextMenu({
 
       <div className="my-1 border-t border-ag-border/60" />
 
-      <MenuItem icon={<Trash2 size={13} />} label="Move to trash" onClick={() => { onTrash(); onClose() }} danger />
+      <MenuItem icon={<Trash2 size={13} />} label={t('contextMenu.moveToTrash')} onClick={() => { onTrash(); onClose() }} danger />
     </div>,
     document.body
   )

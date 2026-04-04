@@ -31,8 +31,16 @@ import {
   restoreItem,
   permanentlyDeleteItem
 } from './file-ops'
+import { parseGitHubUrl, fetchRepoInfo, fetchSkillPreview, fetchDirectoryContents, setGitHubToken } from './github-api'
+import { TRUSTED_SOURCES, resolveTrustTier } from './skills-allowlist'
+import { installSkill, uninstallSkill } from './skills-installer'
+import { getSkillMeta, saveSkillMeta, removeSkillMeta, getAllSkillMeta, getGitHubToken, saveGitHubToken, clearGitHubToken } from './surreal-store'
+import { cacheWrap, cacheDeletePrefix } from './github-cache'
 
 export function registerIpcHandlers(): void {
+  // Initialize GitHub token from store so API calls are authenticated from the start
+  const storedToken = getGitHubToken()
+  if (storedToken) setGitHubToken(storedToken)
 
   // ── Workspaces ──────────────────────────────────────────────────────────────
 
@@ -59,20 +67,27 @@ export function registerIpcHandlers(): void {
   // ── Workspace items ─────────────────────────────────────────────────────────
 
   ipcMain.handle('workspaces:load-items', async (_event, workspacePath: string) => {
-    const [agents, skills, commands, allMeta] = await Promise.all([
+    const [agents, skills, commands, allAgentMeta, allSkillMeta] = await Promise.all([
       loadAgentsForWorkspace(workspacePath),
       loadSkillsForWorkspace(workspacePath),
       loadCommandsForWorkspace(workspacePath),
-      getAllAgentMeta()
+      getAllAgentMeta(),
+      getAllSkillMeta()
     ])
 
-    const metaMap = new Map(allMeta.map((m) => [`${m.agentName}::${m.sourcePath}`, m]))
+    const metaMap = new Map(allAgentMeta.map((m) => [`${m.agentName}::${m.sourcePath}`, m]))
     const agentViews = agents.map((a) => ({
       ...a,
       meta: metaMap.get(`${a.name}::${a.filePath}`) ?? null
     }))
 
-    return { agents: agentViews, skills, commands }
+    const skillMetaMap = new Map(allSkillMeta.map((m) => [m.skillName, m]))
+    const skillViews = skills.map((s) => ({
+      ...s,
+      meta: skillMetaMap.get(s.folderPath.split('/').pop() ?? '') ?? null
+    }))
+
+    return { agents: agentViews, skills: skillViews, commands }
   })
 
   // ── Canvas positions ────────────────────────────────────────────────────────
@@ -187,6 +202,139 @@ export function registerIpcHandlers(): void {
     } catch {
       return null
     }
+  })
+
+  // ── Skills install ──────────────────────────────────────────────────────────
+
+  ipcMain.handle('skills:browse-sources', () => TRUSTED_SOURCES)
+
+  ipcMain.handle('skills:preview-url', async (_event, url: string) => {
+    const ref = parseGitHubUrl(url)
+    if (!ref) return { error: 'NOT_GITHUB' }
+
+    const cacheKey = `preview:${ref.owner}/${ref.repo}/${ref.branch}/${ref.path}`
+    try {
+      return await cacheWrap(cacheKey, async () => {
+        const [skill, repoInfo] = await Promise.all([
+          fetchSkillPreview(ref),
+          fetchRepoInfo(ref.owner, ref.repo).catch(() => null)
+        ])
+        const tier = resolveTrustTier(ref.owner, ref.repo)
+        return {
+          skill: { ...skill, isInstalled: existsSync(join(homedir(), '.claude', 'skills', skill.folderName)) },
+          tier,
+          repoInfo,
+          ref
+        }
+      })
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'code' in err) {
+        return { error: (err as { code: string }).code }
+      }
+      return { error: 'NETWORK_ERROR' }
+    }
+  })
+
+  ipcMain.handle('skills:install', async (_event, ref: { owner: string; repo: string; path: string; branch: string }, skillName: string) => {
+    const targetDir = join(homedir(), '.claude', 'skills', skillName)
+    if (existsSync(targetDir)) return { conflict: true }
+
+    try {
+      const installPath = await installSkill(ref, skillName)
+      saveSkillMeta({
+        skillName,
+        sourceUrl: `https://github.com/${ref.owner}/${ref.repo}/tree/${ref.branch}/${ref.path}`,
+        sourceOwner: ref.owner,
+        sourceRepo: ref.repo,
+        sourcePath: ref.path,
+        sourceBranch: ref.branch,
+        trustTier: resolveTrustTier(ref.owner, ref.repo),
+        installedAt: new Date().toISOString()
+      })
+      // Invalidate source list cache so isInstalled reflects the new state
+      cacheDeletePrefix('source:')
+      return { success: true, installPath }
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'code' in err) {
+        return { error: (err as { code: string }).code }
+      }
+      return { error: 'INSTALL_FAILED' }
+    }
+  })
+
+  ipcMain.handle('skills:uninstall', async (_event, skillName: string) => {
+    await uninstallSkill(skillName)
+    removeSkillMeta(skillName)
+    // Invalidate source list cache so isInstalled reflects the removal
+    cacheDeletePrefix('source:')
+    return { success: true }
+  })
+
+  ipcMain.handle('skills:get-meta', (_event, skillName: string) => getSkillMeta(skillName))
+
+  ipcMain.handle('skills:get-all-meta', () => getAllSkillMeta())
+
+  ipcMain.handle('skills:list-from-source', async (_event, sourceId: string) => {
+    const source = TRUSTED_SOURCES.find((s) => s.id === sourceId)
+    if (!source) return { skills: [], error: null }
+
+    const cacheKey = `source:${sourceId}`
+    const cached = cacheWrap<{ skills: unknown[]; error: string | null }>(cacheKey, async () => {
+      const entries = await fetchDirectoryContents(source.owner, source.repo, source.path, source.branch)
+      const dirs = entries.filter((e) => e.type === 'dir')
+      const skills = []
+      for (const dir of dirs) {
+        try {
+          const ref = { owner: source.owner, repo: source.repo, path: dir.path, branch: source.branch }
+          const skill = await fetchSkillPreview(ref)
+          skills.push({
+            ...skill,
+            isInstalled: existsSync(join(homedir(), '.claude', 'skills', skill.folderName))
+          })
+        } catch (err: unknown) {
+          if (err && typeof err === 'object' && 'code' in err) {
+            const code = (err as { code: string }).code
+            if (code === 'GH_RATE_LIMITED') return { skills, error: 'GH_RATE_LIMITED' }
+          }
+          // GH_NO_SKILL_MD or other — skip this dir
+        }
+      }
+      return { skills, error: null }
+    }).catch((err: unknown) => {
+      if (err && typeof err === 'object' && 'code' in err) {
+        return { skills: [], error: (err as { code: string }).code }
+      }
+      return { skills: [], error: 'NETWORK_ERROR' }
+    })
+
+    return cached
+  })
+
+  // ── GitHub token ────────────────────────────────────────────────────────────
+
+  ipcMain.handle('settings:get-github-token', () => {
+    const token = getGitHubToken()
+    // Return masked token so UI knows if one is set, without exposing the full value
+    return token ? { configured: true, masked: `${token.slice(0, 4)}${'•'.repeat(Math.max(0, token.length - 8))}${token.slice(-4)}` } : { configured: false, masked: null }
+  })
+
+  ipcMain.handle('settings:set-github-token', (_event, token: string) => {
+    const trimmed = token.trim()
+    if (!trimmed) return { error: 'EMPTY_TOKEN' }
+    saveGitHubToken(trimmed)
+    setGitHubToken(trimmed)
+    // Bust all GitHub caches so the new token is used on the next request
+    cacheDeletePrefix('source:')
+    cacheDeletePrefix('preview:')
+    return { success: true }
+  })
+
+  ipcMain.handle('settings:clear-github-token', () => {
+    clearGitHubToken()
+    setGitHubToken(null)
+    cacheDeletePrefix('source:')
+    cacheDeletePrefix('preview:')
+    return { success: true }
   })
 
   ipcMain.handle('avatar:pick', async (event) => {

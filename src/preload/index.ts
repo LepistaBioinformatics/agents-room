@@ -5,10 +5,25 @@ import type {
   WorkspaceItems,
   CanvasPosition,
   TrashRecord,
-  TrashItemType
+  TrashItemType,
+  SkillMeta,
+  GitHubRef,
+  RemoteSkillCard,
+  SkillSource,
+  SkillPreview
 } from '../renderer/src/types/agent'
 
+export interface GitHubTokenStatus {
+  configured: boolean
+  masked: string | null
+}
+
 export interface ElectronAPI {
+  settings: {
+    getGitHubToken: () => Promise<GitHubTokenStatus>
+    setGitHubToken: (token: string) => Promise<{ success?: boolean; error?: string }>
+    clearGitHubToken: () => Promise<{ success: boolean }>
+  }
   workspaces: {
     list: () => Promise<WorkspaceEntry[]>
     add: () => Promise<WorkspaceEntry | null>
@@ -42,9 +57,23 @@ export interface ElectronAPI {
     pick: () => Promise<string | null>
     read: (filePath: string) => Promise<string | null>
   }
+  skills: {
+    browseSources: () => Promise<SkillSource[]>
+    listFromSource: (sourceId: string) => Promise<{ skills: RemoteSkillCard[]; error: string | null }>
+    previewUrl: (url: string) => Promise<SkillPreview | { error: string }>
+    install: (ref: GitHubRef, skillName: string) => Promise<{ success?: boolean; conflict?: boolean; installPath?: string; error?: string }>
+    uninstall: (skillName: string) => Promise<{ success: boolean }>
+    getMeta: (skillName: string) => Promise<SkillMeta | null>
+    getAllMeta: () => Promise<SkillMeta[]>
+  }
 }
 
 const api: ElectronAPI = {
+  settings: {
+    getGitHubToken: () => ipcRenderer.invoke('settings:get-github-token'),
+    setGitHubToken: (token) => ipcRenderer.invoke('settings:set-github-token', token),
+    clearGitHubToken: () => ipcRenderer.invoke('settings:clear-github-token')
+  },
   workspaces: {
     list: () => ipcRenderer.invoke('workspaces:list'),
     add: () => ipcRenderer.invoke('workspaces:add'),
@@ -77,6 +106,15 @@ const api: ElectronAPI = {
   avatar: {
     pick: () => ipcRenderer.invoke('avatar:pick'),
     read: (filePath) => ipcRenderer.invoke('avatar:read', filePath)
+  },
+  skills: {
+    browseSources: () => ipcRenderer.invoke('skills:browse-sources'),
+    listFromSource: (sourceId) => ipcRenderer.invoke('skills:list-from-source', sourceId),
+    previewUrl: (url) => ipcRenderer.invoke('skills:preview-url', url),
+    install: (ref, skillName) => ipcRenderer.invoke('skills:install', ref, skillName),
+    uninstall: (skillName) => ipcRenderer.invoke('skills:uninstall', skillName),
+    getMeta: (skillName) => ipcRenderer.invoke('skills:get-meta', skillName),
+    getAllMeta: () => ipcRenderer.invoke('skills:get-all-meta')
   }
 }
 

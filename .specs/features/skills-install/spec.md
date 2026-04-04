@@ -139,11 +139,11 @@ The allowlist ships with the app and includes only sources that have been manual
 
 | Requirement ID | Story | Phase | Status |
 |---|---|---|---|
-| SKILL-01 | P1: Browse trusted sources | Design | Pending |
-| SKILL-02 | P1: Install from URL | Design | Pending |
-| SKILL-03 | P1: Origin marking | Design | Pending |
-| SKILL-04 | P2: Already installed state | Design | Pending |
-| SKILL-05 | P2: Uninstall from drawer | Design | Pending |
+| SKILL-01 | P1: Browse trusted sources | Execute | Pending |
+| SKILL-02 | P1: Install from URL | Execute | Pending |
+| SKILL-03 | P1: Origin marking | Execute | Pending |
+| SKILL-04 | P2: Already installed state | Execute | Pending |
+| SKILL-05 | P2: Uninstall from drawer | Execute | Pending |
 
 ---
 

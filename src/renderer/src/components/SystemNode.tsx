@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next'
+
 interface Props {
   agentCount: number
   style?: React.CSSProperties
 }
 
 export function SystemNode({ agentCount, style }: Props): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div
       style={style}
@@ -19,9 +22,9 @@ export function SystemNode({ agentCount, style }: Props): JSX.Element {
         </svg>
       </div>
       <div>
-        <div className="text-sm font-bold text-white tracking-tight">Claude Code</div>
+        <div className="text-sm font-bold text-white tracking-tight">{t('system.claudeCode')}</div>
         <div className="text-xs text-indigo-400/70">
-          {agentCount} agent{agentCount !== 1 ? 's' : ''} registered
+          {t('system.agentCount', { count: agentCount })}
         </div>
       </div>
     </div>

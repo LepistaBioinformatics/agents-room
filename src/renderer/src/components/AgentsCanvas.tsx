@@ -72,11 +72,8 @@ export function AgentsCanvas({
     <div
       className="relative h-full w-full overflow-hidden bg-ag-bg"
       style={{
-        backgroundImage: [
-          'linear-gradient(rgb(var(--ag-border) / 0.25) 1px, transparent 1px)',
-          'linear-gradient(90deg, rgb(var(--ag-border) / 0.25) 1px, transparent 1px)'
-        ].join(', '),
-        backgroundSize: '32px 32px'
+        backgroundImage: 'radial-gradient(circle, rgb(var(--ag-border) / 0.55) 1px, transparent 1px)',
+        backgroundSize: '24px 24px'
       }}
     >
       <TransformWrapper

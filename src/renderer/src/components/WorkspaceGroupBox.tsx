@@ -1,4 +1,5 @@
 import { useRef, useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTransformContext } from 'react-zoom-pan-pinch'
 import { Loader2 } from 'lucide-react'
 import type { WorkspaceEntry, WorkspaceItems, AgentView, SkillItem, TrashItemType } from '../types/agent'
@@ -56,6 +57,7 @@ export function WorkspaceGroupBox({
   selectedAgentKey, onSelectAgent, onSelectSkill, onPositionChange,
   onTrash, onDuplicate, onCopy
 }: Props): JSX.Element {
+  const { t } = useTranslation()
   const dragStart = useRef<{ mx: number; my: number; bx: number; by: number } | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
 
@@ -133,7 +135,7 @@ export function WorkspaceGroupBox({
         <div className="p-5 space-y-6">
           {items.agents.length > 0 && (
             <div>
-              <SubgroupLabel color="text-indigo-500" label="Agents" count={items.agents.length} />
+              <SubgroupLabel color="text-indigo-500" label={t('canvas.agents')} count={items.agents.length} />
               <CardGrid items={items.agents} renderCard={(agent) => (
                 <AgentCard
                   key={`${agent.name}::${agent.filePath}`}
@@ -148,7 +150,7 @@ export function WorkspaceGroupBox({
 
           {items.skills.length > 0 && (
             <div>
-              <SubgroupLabel color="text-emerald-500" label="Skills" count={items.skills.length} />
+              <SubgroupLabel color="text-emerald-500" label={t('canvas.skills')} count={items.skills.length} />
               <CardGrid items={items.skills} renderCard={(skill) => (
                 <SkillCard
                   key={skill.folderPath}
@@ -163,7 +165,7 @@ export function WorkspaceGroupBox({
 
           {items.commands.length > 0 && (
             <div>
-              <SubgroupLabel color="text-amber-500" label="Commands" count={items.commands.length} />
+              <SubgroupLabel color="text-amber-500" label={t('canvas.commands')} count={items.commands.length} />
               <CardGrid items={items.commands} renderCard={(cmd) => (
                 <CommandCard
                   key={cmd.filePath}
@@ -177,7 +179,7 @@ export function WorkspaceGroupBox({
 
           {totalCount === 0 && !loading && (
             <div className="py-8 text-center text-xs text-ag-text-3">
-              No agents, skills, or commands found.
+              {t('canvas.empty')}
             </div>
           )}
         </div>

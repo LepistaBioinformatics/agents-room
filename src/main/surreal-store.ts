@@ -8,6 +8,7 @@ import { homedir } from 'os'
 import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
+import { safeStorage } from 'electron'
 
 export interface WorkspaceEntry {
   id: string
@@ -44,12 +45,25 @@ export interface TrashRecord {
   trashedAt: string
 }
 
+export interface SkillMeta {
+  skillName: string
+  sourceUrl: string
+  sourceOwner: string
+  sourceRepo: string
+  sourcePath: string
+  sourceBranch: string
+  trustTier: 'trusted' | 'known' | 'unknown'
+  installedAt: string
+}
+
 interface StoreData {
   homeDir: string
   workspaceList: WorkspaceEntry[]
   agentMeta: Record<string, AgentMeta>
   trashItems: TrashRecord[]
   canvasPositions: Record<string, CanvasPosition>
+  skillMeta: Record<string, SkillMeta>
+  githubToken?: string
 }
 
 const AGENTS_ROOM_DIR = join(homedir(), '.agents-room')
@@ -117,7 +131,8 @@ function readStore(): StoreData {
       workspaceList: data.workspaceList ?? [GLOBAL_ENTRY],
       agentMeta: data.agentMeta ?? {},
       trashItems: data.trashItems ?? [],
-      canvasPositions: data.canvasPositions ?? {}
+      canvasPositions: data.canvasPositions ?? {},
+      skillMeta: data.skillMeta ?? {}
     }
   } catch {
     return {
@@ -125,7 +140,8 @@ function readStore(): StoreData {
       workspaceList: [GLOBAL_ENTRY],
       agentMeta: {},
       trashItems: [],
-      canvasPositions: {}
+      canvasPositions: {},
+      skillMeta: {}
     }
   }
 }
@@ -145,7 +161,8 @@ export async function initDB(): Promise<void> {
       workspaceList: [GLOBAL_ENTRY],
       agentMeta: {},
       trashItems: [],
-      canvasPositions: {}
+      canvasPositions: {},
+      skillMeta: {}
     })
   }
 }
@@ -240,6 +257,74 @@ export async function saveAgentMeta(meta: AgentMeta): Promise<void> {
 
 export async function getAllAgentMeta(): Promise<AgentMeta[]> {
   return Object.values(readStore().agentMeta).map(unpackMeta)
+}
+
+// ── Skill metadata ────────────────────────────────────────────────────────────
+
+export function getSkillMeta(skillName: string): SkillMeta | null {
+  return readStore().skillMeta[skillName] ?? null
+}
+
+export function saveSkillMeta(meta: SkillMeta): void {
+  const data = readStore()
+  data.skillMeta[meta.skillName] = meta
+  writeStore(data)
+}
+
+export function removeSkillMeta(skillName: string): void {
+  const data = readStore()
+  delete data.skillMeta[skillName]
+  writeStore(data)
+}
+
+export function getAllSkillMeta(): SkillMeta[] {
+  return Object.values(readStore().skillMeta)
+}
+
+// ── GitHub token ──────────────────────────────────────────────────────────────
+//
+// Stored as "enc:<base64>" when safeStorage is available (OS keychain-backed
+// encryption: Keychain on macOS, DPAPI on Windows, libsecret on Linux).
+// Falls back to plain text prefixed "plain:" when encryption is unavailable
+// (e.g. Linux without a keyring configured), so the code path is the same.
+
+const ENC_PREFIX = 'enc:'
+const PLAIN_PREFIX = 'plain:'
+
+export function getGitHubToken(): string | null {
+  const raw = readStore().githubToken
+  if (!raw) return null
+
+  if (raw.startsWith(ENC_PREFIX)) {
+    try {
+      return safeStorage.decryptString(Buffer.from(raw.slice(ENC_PREFIX.length), 'base64'))
+    } catch {
+      return null
+    }
+  }
+
+  if (raw.startsWith(PLAIN_PREFIX)) {
+    return raw.slice(PLAIN_PREFIX.length)
+  }
+
+  // Legacy: plain value stored before safeStorage was introduced — re-encrypt on next save
+  return raw
+}
+
+export function saveGitHubToken(token: string): void {
+  const data = readStore()
+  if (safeStorage.isEncryptionAvailable()) {
+    data.githubToken = ENC_PREFIX + safeStorage.encryptString(token).toString('base64')
+  } else {
+    data.githubToken = PLAIN_PREFIX + token
+  }
+  writeStore(data)
+}
+
+export function clearGitHubToken(): void {
+  const data = readStore()
+  delete data.githubToken
+  writeStore(data)
 }
 
 // ── Trash ─────────────────────────────────────────────────────────────────────

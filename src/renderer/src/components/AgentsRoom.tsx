@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { RefreshCw, Trash2, PanelLeftClose, PanelLeft, Loader2 } from 'lucide-react'
 import type { AgentView, AgentMeta, CanvasPosition, TrashItemType, SkillItem } from '../types/agent'
 import type { WorkspaceEntry, WorkspaceItems } from '../types/agent'
@@ -8,6 +9,7 @@ import { SkillDetailDrawer } from './SkillDetailDrawer'
 import { WorkspaceDetailDrawer } from './WorkspaceDetailDrawer'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { TrashPanel } from './TrashPanel'
+import { BrowseSkillsPanel } from './BrowseSkillsPanel'
 import { useTrash } from '../hooks/useTrash'
 import { cn } from '../lib/utils'
 
@@ -37,11 +39,13 @@ export function AgentsRoom({
   onAddWorkspace, onRemoveWorkspace, onUpdateMeta, onPositionChange,
   onReloadAll, onReloadWorkspace, onSaveAgentMeta
 }: Props): JSX.Element {
+  const { t } = useTranslation()
   const [selectedAgent, setSelectedAgent] = useState<AgentView | null>(null)
   const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null)
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const selectedWorkspace = selectedWorkspaceId ? (workspaces.find((w) => w.id === selectedWorkspaceId) ?? null) : null
   const [globalLoading, setGlobalLoading] = useState(false)
+  const [browsePanelOpen, setBrowsePanelOpen] = useState(false)
 
   const reloadWorkspaceByPath = useCallback((workspacePath: string) => {
     const ws = workspaces.find((w) => w.path === workspacePath)
@@ -98,7 +102,7 @@ export function AgentsRoom({
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="rounded-lg p-1.5 text-ag-text-3 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-2"
-            title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+            title={sidebarOpen ? t('nav.closeSidebar') : t('nav.openSidebar')}
           >
             {sidebarOpen ? <PanelLeftClose size={15} /> : <PanelLeft size={15} />}
           </button>
@@ -112,11 +116,11 @@ export function AgentsRoom({
                 <circle cx="8" cy="8" r="2.5" fill="currentColor" opacity="0.7" />
               </svg>
             </div>
-            <span className="text-sm font-semibold text-ag-text-1">Agents Room</span>
+            <span className="text-sm font-semibold text-ag-text-1">{t('nav.agentsRoom')}</span>
           </div>
 
           <span className="rounded-full bg-ag-surface-2 px-2 py-0.5 text-[10px] text-ag-text-3 tabular-nums">
-            {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''} · {totalItems} items
+            {t('stats.workspaceCount', { count: workspaces.length })} · {t('stats.itemCount', { count: totalItems })}
           </span>
 
           {globalLoading && <Loader2 size={12} className="animate-spin text-ag-text-3" />}
@@ -126,21 +130,21 @@ export function AgentsRoom({
           <button
             onClick={handleReload}
             disabled={globalLoading}
-            title="Reload all"
+            title={t('nav.reloadAll')}
             className="rounded-lg p-1.5 text-ag-text-3 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-2 disabled:opacity-40"
           >
             <RefreshCw size={14} />
           </button>
           <button
             onClick={handleOpenTrash}
-            title="Trash"
+            title={t('nav.trash')}
             className={cn(
               'relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs',
               'text-ag-text-2 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-1'
             )}
           >
             <Trash2 size={13} />
-            Trash
+            {t('nav.trash')}
             {trashItems.length > 0 && (
               <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white">
                 {trashItems.length}
@@ -164,6 +168,7 @@ export function AgentsRoom({
               onRemove={onRemoveWorkspace}
               onUpdateMeta={onUpdateMeta}
               onOpenDetails={(entry) => setSelectedWorkspaceId(entry.id)}
+              onBrowseSkills={() => setBrowsePanelOpen(true)}
             />
           )}
         </div>
@@ -193,6 +198,7 @@ export function AgentsRoom({
       <SkillDetailDrawer
         skill={selectedSkill}
         onClose={() => setSelectedSkill(null)}
+        onUninstalled={() => onReloadWorkspace('global')}
       />
 
       <WorkspaceDetailDrawer
@@ -208,6 +214,13 @@ export function AgentsRoom({
           onClose={() => setTrashOpen(false)}
           onRestore={restore}
           onDelete={deletePermanently}
+        />
+      )}
+
+      {browsePanelOpen && (
+        <BrowseSkillsPanel
+          onClose={() => setBrowsePanelOpen(false)}
+          onInstalled={() => onReloadWorkspace('global')}
         />
       )}
     </div>

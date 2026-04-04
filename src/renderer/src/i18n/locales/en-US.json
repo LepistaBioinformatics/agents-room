@@ -1,0 +1,209 @@
+{
+  "common": {
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved!",
+    "cancel": "Cancel",
+    "close": "Close",
+    "loading": "Loading…",
+    "install": "Install",
+    "installing": "Installing…",
+    "installed": "Installed",
+    "uninstall": "Uninstall",
+    "uninstalling": "Uninstalling…",
+    "overwrite": "Overwrite",
+    "preview": "Preview",
+    "add": "Add",
+    "remove": "Remove",
+    "delete": "Delete",
+    "restore": "Restore",
+    "duplicate": "Duplicate",
+    "clickToConfirm": "Click again to confirm",
+    "failed": "Failed"
+  },
+  "nav": {
+    "agentsRoom": "Agents Room",
+    "openSidebar": "Open sidebar",
+    "closeSidebar": "Close sidebar",
+    "reloadAll": "Reload all",
+    "trash": "Trash",
+    "workspaces": "Workspaces",
+    "browseInstallSkills": "Browse & install skills",
+    "skills": "Skills"
+  },
+  "stats": {
+    "workspaceCount_one": "{{count}} workspace",
+    "workspaceCount_other": "{{count}} workspaces",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items"
+  },
+  "card": {
+    "viewDetails": "View details →",
+    "skill": "skill",
+    "cmd": "cmd",
+    "agent": "agent"
+  },
+  "contextMenu": {
+    "duplicate": "Duplicate",
+    "copyToWorkspace": "Copy to workspace",
+    "moveToTrash": "Move to trash"
+  },
+  "canvas": {
+    "resetView": "Reset view",
+    "agents": "Agents",
+    "skills": "Skills",
+    "commands": "Commands",
+    "empty": "No agents, skills, or commands found."
+  },
+  "picker": {
+    "title": "Agents Room",
+    "subtitle": "Visual map of your Claude Code agent team",
+    "description": "Load a project folder to include workspace-specific agents alongside your global agents from",
+    "globalPath": "~/.claude/agents",
+    "openFolder": "Open project folder",
+    "or": "or",
+    "globalOnly": "Global agents only",
+    "helperText": "You can always add a workspace later from the toolbar.",
+    "tip": "Tip: launch with",
+    "tipCommand": "agents-room /path/to/project",
+    "tipSuffix": "to skip this step."
+  },
+  "trash": {
+    "title": "Trash",
+    "empty": "Trash is empty",
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "workspace": "Workspace",
+      "trashed": "Trashed",
+      "actions": "Actions"
+    },
+    "global": "Global",
+    "restoreError": "Could not restore \"{{name}}\" — original directory no longer exists.",
+    "permanentlyDelete": "Permanently delete?",
+    "deletePermanently": "Delete permanently"
+  },
+  "agent": {
+    "changeAvatar": "Change avatar",
+    "sections": {
+      "tags": "Tags",
+      "tools": "Tools",
+      "relationships": "Relationships",
+      "metadata": "Metadata",
+      "prompt": "Prompt",
+      "notes": "Notes"
+    },
+    "addTag": "Add tag and press Enter…",
+    "mentionsArrow": "mentions →",
+    "referencedBy": "← referenced by",
+    "notesHelper": "Stored in ~/.agents-room — not in agent file",
+    "notesPlaceholder": "Add personal notes, context, or observations about this agent…",
+    "metaKeys": {
+      "path": "path",
+      "model": "model",
+      "source": "source",
+      "tools": "tools"
+    }
+  },
+  "skill": {
+    "sections": {
+      "info": "Info",
+      "origin": "Origin",
+      "prompt": "Prompt"
+    },
+    "infoKeys": {
+      "folder": "folder",
+      "path": "path",
+      "workspace": "workspace",
+      "origin": "origin",
+      "installed": "installed"
+    },
+    "originLocal": "Local",
+    "noPrompt": "No prompt body found in SKILL.md.",
+    "danger": {
+      "title": "Uninstall skill",
+      "description": "Removes ~/.claude/skills/{{name}}/ permanently.",
+      "button": "Uninstall",
+      "confirm": "Click again to confirm"
+    }
+  },
+  "workspace": {
+    "changeAvatar": "Change avatar",
+    "changeEmoji": "Change emoji",
+    "sections": {
+      "displayName": "Display name",
+      "tags": "Tags",
+      "claudeMd": "CLAUDE.md",
+      "settings": "Settings",
+      "dangerZone": "Danger zone"
+    },
+    "addTag": "Add tag and press Enter…",
+    "claudeMdPlaceholder": "No CLAUDE.md found. Write instructions for Claude in this workspace…",
+    "saveClaudeMd": "Save CLAUDE.md",
+    "noSettings": "No settings files found in .claude/",
+    "emptyFile": "(empty)",
+    "danger": {
+      "title": "Danger zone",
+      "description": "Removes this workspace from the list. Project files will not be deleted.",
+      "warning": "Are you sure? This action cannot be undone.",
+      "button": "Remove workspace",
+      "confirm": "Are you sure?"
+    }
+  },
+  "githubToken": {
+    "title": "GitHub Token",
+    "description": "A personal access token (PAT) increases the GitHub API rate limit from 60 to 5,000 requests/hour and enables access to private repositories.",
+    "statusConfigured": "Token configured: {{masked}}",
+    "statusNone": "No token configured — unauthenticated (60 req/hour)",
+    "inputLabel": "Personal access token",
+    "inputPlaceholder": "ghp_…",
+    "inputHelper": "Requires no scopes for public repos. Add \"repo\" scope for private repos.",
+    "save": "Save token",
+    "clear": "Clear token",
+    "docsLink": "How to create a GitHub PAT →",
+    "errors": {
+      "EMPTY_TOKEN": "Token cannot be empty."
+    }
+  },
+  "browse": {
+    "title": "Browse Skills",
+    "tabs": {
+      "browse": "Browse",
+      "url": "Install from URL"
+    },
+    "noSources": "No curated sources available yet.",
+    "noSourcesHelper": "Use \"Install from URL\" to install any skill from GitHub.",
+    "loadingSkills": "Loading skills…",
+    "noSkills": "No skills found in this source.",
+    "model": "Model: {{model}}",
+    "urlPlaceholder": "Paste a GitHub URL…",
+    "trust": {
+      "trusted": "Trusted source",
+      "known": "Unverified source",
+      "unknown": "Unknown source",
+      "unknownWarning": "Only install skills you trust.",
+      "unknownCheckbox": "I understand this is an untrusted source",
+      "repoInfo": "{{stars}} ★ · {{org}} · updated {{date}}"
+    },
+    "installSuccess": "✓ Skill installed.",
+    "conflict": "A skill named '{{name}}' is already installed.",
+    "errors": {
+      "NOT_GITHUB": "Only GitHub URLs are supported.",
+      "GH_NOT_FOUND": "Skill not found at this URL.",
+      "GH_RATE_LIMITED": "GitHub rate limit reached. Try again at {{time}}.",
+      "GH_RATE_LIMITED_UNKNOWN": "GitHub rate limit reached. Try again later.",
+      "GH_RATE_LIMITED_BROWSE": "GitHub rate limit reached. Try again in a few minutes or",
+      "GH_RATE_LIMITED_BROWSE_CTA": "configure a GitHub token",
+      "GH_NO_SKILL_MD": "No SKILL.md found in this folder.",
+      "NETWORK_ERROR": "Could not reach GitHub. Check your connection.",
+      "LOAD_ERROR": "Could not load skills. Check your connection.",
+      "GENERIC": "An error occurred.",
+      "INSTALL_FAILED": "Install failed."
+    }
+  },
+  "system": {
+    "claudeCode": "Claude Code",
+    "agentCount_one": "{{count}} agent registered",
+    "agentCount_other": "{{count}} agents registered"
+  }
+}

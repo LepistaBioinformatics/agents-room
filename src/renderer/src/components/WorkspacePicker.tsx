@@ -1,4 +1,5 @@
 import { FolderOpen, Globe } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   onPick: () => void
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export function WorkspacePicker({ onPick, onGlobalOnly }: Props): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-[#0f0f13] text-white">
       <div className="mb-8 flex flex-col items-center gap-3">
@@ -23,16 +25,16 @@ export function WorkspacePicker({ onPick, onGlobalOnly }: Props): JSX.Element {
             <line x1="26" y1="20" x2="23" y2="20" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
           </svg>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">Agents Room</h1>
-        <p className="text-sm text-zinc-400">Visual map of your Claude Code agent team</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('picker.title')}</h1>
+        <p className="text-sm text-zinc-400">{t('picker.subtitle')}</p>
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
         <p className="text-sm text-zinc-300">
-          Load a project folder to include workspace-specific agents alongside your global agents
-          from{' '}
+          {t('picker.description')}
+          {' '}
           <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs text-indigo-300">
-            ~/.claude/agents
+            {t('picker.globalPath')}
           </code>
           .
         </p>
@@ -42,12 +44,12 @@ export function WorkspacePicker({ onPick, onGlobalOnly }: Props): JSX.Element {
           className="mt-1 flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 active:bg-indigo-700"
         >
           <FolderOpen size={16} />
-          Open project folder
+          {t('picker.openFolder')}
         </button>
 
         <div className="relative flex items-center gap-3">
           <div className="flex-1 border-t border-zinc-800" />
-          <span className="text-xs text-zinc-600">or</span>
+          <span className="text-xs text-zinc-600">{t('picker.or')}</span>
           <div className="flex-1 border-t border-zinc-800" />
         </div>
 
@@ -56,17 +58,17 @@ export function WorkspacePicker({ onPick, onGlobalOnly }: Props): JSX.Element {
           className="flex items-center justify-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/60 px-4 py-2.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-600 hover:bg-zinc-800 hover:text-white"
         >
           <Globe size={15} />
-          Global agents only
+          {t('picker.globalOnly')}
         </button>
 
         <p className="text-center text-xs text-zinc-600">
-          You can always add a workspace later from the toolbar.
+          {t('picker.helperText')}
         </p>
       </div>
 
       <p className="mt-6 text-xs text-zinc-600">
-        Tip: launch with{' '}
-        <code className="text-zinc-500">agents-room /path/to/project</code> to skip this step.
+        {t('picker.tip')}{' '}
+        <code className="text-zinc-500">{t('picker.tipCommand')}</code>{t('picker.tipSuffix')}
       </p>
     </div>
   )
