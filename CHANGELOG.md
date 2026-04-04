@@ -1,0 +1,96 @@
+# Changelog
+
+All notable changes to Agents Room are documented here.
+
+---
+
+## [0.1.2] — 2026-04-04
+
+### Changed
+- Removed macOS build target — macOS distribution requires a paid Apple Developer account for code signing. Windows and Linux are fully supported.
+
+---
+
+## [0.1.1] — 2026-04-04
+
+### Added
+- **Semantic versioning + auto-updater** — `electron-updater` checks for new releases on startup and downloads them in the background. Users see download progress and can install with one click from the About modal.
+- **About & Updates modal** — accessible from the sidebar footer. Shows current version, update status, progress bar during download, and Install & Restart button when ready.
+- **Release scripts** — `yarn release:patch / release:minor / release:major` bump the version, create a git tag, and push. GitHub Actions picks up the tag and builds automatically.
+- **Cross-platform release pipeline** — GitHub Actions builds Windows (NSIS installer + portable) and Linux (AppImage, deb, rpm) artifacts and publishes them as a GitHub release.
+
+---
+
+## [0.1.0] — 2026-04-04
+
+Initial release of Agents Room — a visual canvas for Claude Code agent teams.
+
+### Canvas
+
+- **Multi-workspace canvas** — each project folder becomes a draggable group box on an infinite pan/zoom canvas. Positions are persisted across sessions.
+- **Agent cards** — character-card layout with portrait avatar, name, model badge, description, and tools list. Reads directly from `.claude/agents/*.md` files using frontmatter + gray-matter.
+- **Skill cards** — reads `~/.claude/skills/<name>/SKILL.md`; shows name, trust tier, model, and description.
+- **Command cards** — reads `~/.claude/commands/*.md` slash commands.
+- **Relationship detection** — heuristic body scan finds agent-to-agent mentions without modifying any files.
+- **Snap-to-grid drag** — group boxes snap to a 32px grid matching the canvas background.
+- **Zoom controls** — react-zoom-pan-pinch with dot grid; ⊙ button centers on content; drag accuracy maintained at all zoom levels.
+- **Context menu** — right-click any card for copy / duplicate / move to trash. Portal-rendered so it stays pixel-accurate at any zoom level.
+
+### Agent detail drawer
+
+- Full prompt body rendered as Markdown.
+- Frontmatter table (model, tools, temperature, etc.).
+- Relationships panel — which agents reference this one.
+- Editable notes, tags, and avatar (copied to `~/.agents-room/avatars/`, served as base64 data URLs over IPC).
+- Auto-saves tags and avatar on change without requiring a Save button press.
+
+### Skill detail drawer
+
+- SKILL.md body rendered as Markdown.
+- Trust tier badge (official / user-trusted / unknown).
+- Origin badge showing source repo.
+- Uninstall with confirmation.
+
+### Workspace management
+
+- **Sidebar** — lists workspaces with avatar, display name, path, and tags. Hover reveals a details button.
+- **Workspace detail drawer** — edit display name, emoji, avatar, tags. Includes CLAUDE.md editor (reads `{workspace}/CLAUDE.md` or `{workspace}/.claude/CLAUDE.md`, writes to whichever exists). Settings viewer shows `.claude/settings.json` and `settings.*.json` as read-only formatted JSON.
+- **Global workspace** — always present; reads from `~/.claude/`.
+- **Duplicate prevention** — deduplicates by path on add.
+- **Two-step delete confirmation** — danger zone section requires a second click.
+
+### Skills install
+
+- **Browse panel** — lists official and user-trusted skill sources.
+- **GitHub install** — paste any GitHub URL pointing to a skill folder; previews SKILL.md before installing into `~/.claude/skills/<name>/`.
+- **Trusted Sources Registry** — add custom GitHub repos as trusted sources; stored in `~/.agents-room/store.json`; shown with a user-trusted tier badge.
+- **GitHub token** — configurable PAT for higher rate limits; stored in the local store (never in plaintext env vars); masked in the UI.
+- **Uninstall** — removes the skill folder and clears metadata.
+
+### Permissions editor
+
+- Structured Allow / Ask / Deny editor for `.claude/settings.json` permission rules.
+- Tool picker with context-aware input (path picker for Bash, pattern fields for Edit/Write/Read).
+- `defaultMode` dropdown.
+- `additionalDirectories` manager.
+- Raw JSON fallback view.
+
+### Logical trash
+
+- Items moved to `.claude/.trash/<type>s/` instead of deleted.
+- Restore with missing-directory warning.
+- Permanent delete from the trash panel.
+
+### Design system
+
+- **Honey Bronze accent** (`#C8922A` light / `#E0A832` dark) — CSS custom properties in bare RGB channel format for Tailwind opacity modifiers.
+- **Neutral color system** — all surface tokens use pure neutrals; no tinted grays.
+- **Inter** (UI) + **JetBrains Mono** (code) — bundled via `@fontsource`, no CDN dependency.
+- **CVA + system theme** — `class-variance-authority` for component variants; `darkMode: 'media'` for automatic OS dark/light detection; `ag-*` token namespace.
+- **`docs/brand/`** — full brand guide: colors, typography, voice, iconography, logo, marketing.
+
+### Storage
+
+- JSON store at `~/.agents-room/store.json` — workspaces, canvas positions, agent metadata, skill metadata, user-trusted sources, GitHub token.
+- Paths stored in `~/`-relative format for portability across machines and users.
+- Backward-compatible: old absolute paths are resolved transparently.
