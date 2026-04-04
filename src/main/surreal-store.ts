@@ -95,17 +95,23 @@ const GLOBAL_ENTRY: WorkspaceEntry = {
 
 const HOME = homedir()
 
-/** Convert absolute path to ~/... if it's under the home directory. */
+/** Convert absolute path to ~/... if it's under the home directory.
+ *  Stored paths always use forward slashes for portability across platforms. */
 function rel(path: string): string {
   if (!path) return path
-  if (path.startsWith(HOME + '/')) return '~/' + path.slice(HOME.length + 1)
+  // Normalize to forward slashes so comparison works on Windows (sep = '\')
+  const normalized = path.replace(/\\/g, '/')
+  const homeNormalized = HOME.replace(/\\/g, '/')
+  if (normalized.startsWith(homeNormalized + '/')) {
+    return '~/' + normalized.slice(homeNormalized.length + 1)
+  }
   return path
 }
 
-/** Resolve ~/... back to an absolute path. */
+/** Resolve ~/... back to an absolute path using the platform's separator. */
 function abs(path: string): string {
   if (!path) return path
-  if (path.startsWith('~/')) return HOME + '/' + path.slice(2)
+  if (path.startsWith('~/')) return join(HOME, path.slice(2))
   return path
 }
 

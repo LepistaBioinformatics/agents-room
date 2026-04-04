@@ -95,12 +95,63 @@ All paths in `store.json` are stored relative to your home directory (`~/...`). 
 
 ## Installation
 
-### Prerequisites
+### Download a release (recommended)
+
+Go to the [Releases](https://github.com/LepistaBioinformatics/agents-room/releases) page and grab the installer for your platform:
+
+| Platform | File | Notes |
+|----------|------|-------|
+| **Windows** | `Agents Room-x.y.z-setup.exe` | NSIS installer, x64 or arm64 |
+| **macOS** | `Agents Room-x.y.z.dmg` | Universal (x64 + Apple Silicon) |
+| **Linux** | `Agents Room-x.y.z.AppImage` | Run anywhere, no install needed |
+| **Linux** | `agents-room_x.y.z_amd64.deb` | Debian / Ubuntu |
+
+#### Windows
+
+Run the `.exe` installer. Windows Defender may show a SmartScreen prompt on first run — click **More info → Run anyway**. The app installs to `%LOCALAPPDATA%\Programs\Agents Room` and creates a Start Menu shortcut.
+
+#### macOS
+
+Open the `.dmg`, drag **Agents Room** to Applications. On first launch macOS may block it with a Gatekeeper warning. To allow it:
+
+```
+System Settings → Privacy & Security → Open Anyway
+```
+
+Or from Terminal:
+
+```bash
+xattr -cr /Applications/Agents\ Room.app
+```
+
+#### Linux (AppImage)
+
+```bash
+chmod +x "Agents Room-x.y.z.AppImage"
+./"Agents Room-x.y.z.AppImage"
+```
+
+No installation required. To integrate with your desktop launcher, use [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher) or move the file to `~/.local/bin/`.
+
+#### Linux (deb)
+
+```bash
+sudo dpkg -i agents-room_x.y.z_amd64.deb
+```
+
+---
+
+### Build from source
+
+#### Prerequisites
 
 - **Node.js** 18 or later
 - **yarn** 1.22 or later
+- **Linux**: `rpmbuild` for `.rpm` target (`sudo apt install rpm` / `sudo dnf install rpm-build`)
+- **macOS**: Xcode Command Line Tools (`xcode-select --install`)
+- **Windows**: no extra tools needed
 
-### Clone and install
+#### Clone and install
 
 ```bash
 git clone https://github.com/your-org/agent-room-ui.git
@@ -108,26 +159,31 @@ cd agent-room-ui
 yarn
 ```
 
-### Run in development mode
+#### Run in development mode
 
 ```bash
 yarn dev
 ```
 
-> **Linux users:** The app already sets `NO_SANDBOX=1` and `--disable-gpu` automatically. No extra steps needed.
+> **Linux:** GPU acceleration is automatically disabled and sandbox flags are set. No extra steps needed.
 
-### Build a production binary
+#### Build a platform installer
 
 ```bash
-yarn build
+yarn build:linux   # AppImage + deb + rpm
+yarn build:mac     # DMG + ZIP
+yarn build:win     # NSIS installer
+yarn build:all     # all platforms (requires macOS for .icns generation)
 ```
 
-The packaged app will be in the `dist/` folder.
+Artifacts go to `dist/`.
 
 ```bash
-# Or build unpacked (no installer, faster iteration)
+# Faster iteration — unpacked app, no installer
 yarn build:unpack
 ```
+
+> **Cross-compilation note:** Building a `.dmg` or `.icns` requires macOS. Building `.exe` from Linux/macOS requires Wine. For CI, build each platform on its native runner.
 
 ---
 
