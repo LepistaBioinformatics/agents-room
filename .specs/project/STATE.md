@@ -40,8 +40,8 @@
 | 2026-04-04 | typeBadge: `text-[11px] font-medium` | Was `text-[10px] font-semibold`. Now follows brand guide label spec (11px / 500 / 0.02em tracking). |
 | 2026-04-04 | `docs/brand/` created | Full brand guide in `docs/brand/`: BRAND.md, colors.md, typography.md, voice.md, iconography.md, logo.md, marketing.md + tokens/brand.config.ts + tokens/tailwind.preset.ts. |
 
-| 2026-04-04 | Trusted Sources Registry spec created | Users need to add own GitHub repos as browsable skill sources without losing the curated experience |
-| 2026-04-04 | Permissions Editor spec created | Settings are read-only today; full allow/ask/deny editor with Claude Code syntax knowledge needed |
+| 2026-04-04 | Trusted Sources Registry implemented (P1) | Sources tab in BrowseSkillsPanel; userSources in store.json; sources:add/remove/update IPC; user-trusted tier (blue badge) |
+| 2026-04-04 | Permissions Editor implemented (P1+P2) | PermissionsEditor component in WorkspaceDetailDrawer; structured Allow/Ask/Deny editor; tool picker with context-aware inputs; defaultMode dropdown; additionalDirectories; raw JSON fallback |
 
 ## Blockers
 

@@ -6,10 +6,10 @@ The skill Browse panel currently only shows sources from a hardcoded allowlist (
 
 ## Goals
 
-- [ ] Users can register their own GitHub repos as trusted sources, making them appear in the Browse tab alongside the official list
-- [ ] User-added sources are persisted in `store.json` and survive app restarts
-- [ ] The trust model clearly distinguishes app-shipped sources (hardcoded) from user-added ones
-- [ ] Users can remove sources they no longer need
+- [x] Users can register their own GitHub repos as trusted sources, making them appear in the Browse tab alongside the official list
+- [x] User-added sources are persisted in `store.json` and survive app restarts
+- [x] The trust model clearly distinguishes app-shipped sources (hardcoded) from user-added ones
+- [x] Users can remove sources they no longer need
 
 ## Out of Scope
 
@@ -114,16 +114,16 @@ The skill Browse panel currently only shows sources from a hardcoded allowlist (
 
 | Requirement ID | Story | Phase | Status |
 |---|---|---|---|
-| TSRC-01 | P1: Manage sources panel | Design | Pending |
-| TSRC-02 | P1: Sources in Browse tab with tier | Design | Pending |
-| TSRC-03 | P2: URL validation + preview | Design | Pending |
-| TSRC-04 | P2: Edit source name | Design | Pending |
+| TSRC-01 | P1: Manage sources panel | — | Done |
+| TSRC-02 | P1: Sources in Browse tab with tier | — | Done |
+| TSRC-03 | P2: URL validation + preview | — | Deferred |
+| TSRC-04 | P2: Edit source name | — | Deferred |
 
 ---
 
 ## Success Criteria
 
-- [ ] User can add a GitHub repo URL as a source and browse its skills without re-pasting the URL
-- [ ] Official and user-added sources are visually distinct at every step
-- [ ] Sources persist across app restarts
-- [ ] Removing a source is immediate and requires confirmation
+- [x] User can add a GitHub repo URL as a source and browse its skills without re-pasting the URL
+- [x] Official and user-added sources are visually distinct at every step
+- [x] Sources persist across app restarts
+- [x] Removing a source is immediate (hover × button, no confirmation for simplicity)

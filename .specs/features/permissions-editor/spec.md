@@ -6,10 +6,10 @@ Claude Code's `settings.json` files are currently displayed as read-only formatt
 
 ## Goals
 
-- [ ] Users can view, add, and remove permission rules in `allow`, `ask`, and `deny` from within the app
-- [ ] The editor understands official Claude Code permission syntax and offers structured inputs (tool picker, pattern builder, folder picker for path-based rules)
-- [ ] Changes are written back to the correct `settings.json` file immediately
-- [ ] The editor works for both global (`~/.claude/settings.json`) and per-workspace (`.claude/settings.json`) settings
+- [x] Users can view, add, and remove permission rules in `allow`, `ask`, and `deny` from within the app
+- [x] The editor understands official Claude Code permission syntax and offers structured inputs (tool picker, pattern builder, folder picker for path-based rules)
+- [x] Changes are written back to the correct `settings.json` file immediately
+- [x] The editor works for both global (`~/.claude/settings.json`) and per-workspace (`.claude/settings.json`) settings
 
 ## Out of Scope
 
@@ -208,21 +208,21 @@ This is built into the editor as structured knowledge.
 
 | Requirement ID | Story | Phase | Status |
 |---|---|---|---|
-| PERM-01 | P1: Structured permissions view | Design | Pending |
-| PERM-02 | P1: Add rule with guided form | Design | Pending |
-| PERM-03 | P1: Remove rule | Design | Pending |
-| PERM-04 | P1: File scope selector | Design | Pending |
-| PERM-05 | P2: Edit defaultMode | Design | Pending |
-| PERM-06 | P2: additionalDirectories | Design | Pending |
-| PERM-07 | P2: Move rule between sections | Design | Pending |
-| PERM-08 | P3: Inline validation hints | Design | Pending |
+| PERM-01 | P1: Structured permissions view | — | Done |
+| PERM-02 | P1: Add rule with guided form | — | Done |
+| PERM-03 | P1: Remove rule | — | Done |
+| PERM-04 | P1: File scope selector | — | Done |
+| PERM-05 | P2: Edit defaultMode | — | Done |
+| PERM-06 | P2: additionalDirectories | — | Done |
+| PERM-07 | P2: Move rule between sections | — | Deferred |
+| PERM-08 | P3: Inline validation hints | — | Deferred |
 
 ---
 
 ## Success Criteria
 
-- [ ] User can add a Bash allow rule without knowing the syntax by hand
-- [ ] User can add a path-based Read rule using a folder picker
-- [ ] All changes are written to the correct file with no manual save step
-- [ ] Raw JSON fallback is always available for power users
-- [ ] The editor correctly supports all official Claude Code tool namespaces
+- [x] User can add a Bash allow rule without knowing the syntax by hand
+- [x] User can add a path-based Read rule using a folder picker
+- [x] All changes are written to the correct file with no manual save step
+- [x] Raw JSON fallback is always available for power users
+- [x] The editor correctly supports all official Claude Code tool namespaces

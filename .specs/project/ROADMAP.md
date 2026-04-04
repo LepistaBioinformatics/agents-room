@@ -42,8 +42,8 @@
 | Search (name / model / tool) | Planned | Global search bar |
 | Export canvas as PNG/SVG | Planned | html-to-image or similar |
 | Skill / command creation from UI | Planned | Create / edit SKILL.md or command .md |
-| **Trusted Sources Registry** | Specified | Users add own GitHub repos as browsable skill sources; user-trusted tier; stored in store.json |
-| **Permissions Editor** | Specified | Structured allow/ask/deny editor in workspace settings; tool picker, path browser, folder dialog, auto-save |
+| **Trusted Sources Registry** | ✅ Done | Sources tab; userSources in store.json; user-trusted tier; sources:add/remove IPC. P2 (preview, rename) deferred. |
+| **Permissions Editor** | ✅ Done | PermissionsEditor in workspace drawer; Allow/Ask/Deny editor; tool picker; defaultMode; additionalDirs; raw fallback. PERM-07/08 deferred. |
 | Migrate store to @surrealdb/node | Planned | Richer queries; requires electron-rebuild setup |
 
 ## v3 — Intelligence

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Loader2, KeyRound } from 'lucide-react'
+import { X, Loader2, KeyRound, Plus, Trash2 } from 'lucide-react'
 import useSWR from 'swr'
 import type { RemoteSkillCard, SkillPreview, SkillSource, GitHubRef } from '../types/agent'
 import { trustBadge } from '../lib/variants'
@@ -42,7 +42,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
       default: return t('browse.errors.GENERIC')
     }
   }
-  const [activeTab, setActiveTab] = useState<'browse' | 'url'>('browse')
+  const [activeTab, setActiveTab] = useState<'browse' | 'url' | 'sources'>('browse')
   const [url, setUrl] = useState('')
   const [previewState, setPreviewState] = useState<'idle' | 'loading' | 'preview' | 'error'>('idle')
   const [installState, setInstallState] = useState<'idle' | 'installing' | 'success' | 'conflict' | 'error'>('idle')
@@ -106,7 +106,6 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
       const result = await window.electronAPI.skills.install(ref, skill.folderName)
       if (result.success) {
         setSkillInstallState((prev) => ({ ...prev, [skill.folderName]: 'success' }))
-        setSourceSkills((prev) => prev.map((s) => s.folderName === skill.folderName ? { ...s, isInstalled: true } : s))
         onInstalled()
       } else if (result.conflict) {
         setSkillInstallState((prev) => ({ ...prev, [skill.folderName]: 'conflict' }))
@@ -221,14 +220,19 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
                 key={src.id}
                 onClick={() => selectSource(src)}
                 className={cn(
-                  'rounded-xl border px-4 py-3 text-left transition-colors',
+                  'flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors',
                   selectedSource?.id === src.id
                     ? 'border-accent-border bg-accent-surface text-ag-text-1'
                     : 'border-ag-border bg-ag-surface-2 text-ag-text-2 hover:border-ag-border hover:text-ag-text-1'
                 )}
               >
-                <div className="text-sm font-semibold">{src.name}</div>
-                {src.description && <div className="mt-0.5 text-xs text-ag-text-3">{src.description}</div>}
+                <div>
+                  <div className="text-sm font-semibold">{src.name}</div>
+                  {src.description && <div className="mt-0.5 text-xs text-ag-text-3">{src.description}</div>}
+                </div>
+                <span className={trustBadge({ tier: src.tier === 'user-trusted' ? 'user-trusted' : 'trusted' })}>
+                  {src.tier === 'user-trusted' ? t('sources.userTrusted') : t('sources.official')}
+                </span>
               </button>
             ))}
           </div>
@@ -243,7 +247,9 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
                 <span className="ml-2 text-xs text-ag-text-3">{selectedSource.description}</span>
               )}
             </div>
-            <span className={trustBadge({ tier: 'trusted' })}>trusted</span>
+            <span className={trustBadge({ tier: selectedSource.tier === 'user-trusted' ? 'user-trusted' : 'trusted' })}>
+              {selectedSource.tier === 'user-trusted' ? t('sources.userTrusted') : t('sources.official')}
+            </span>
           </div>
         )}
 
@@ -337,6 +343,26 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
         )}
       </div>
     )
+  }
+
+  // ── Sources tab ──────────────────────────────────────────────────────────────
+
+  function renderSourcesTab(): JSX.Element {
+    const officialSources = sources.filter((s) => s.tier === 'official')
+    const userSources = sources.filter((s) => s.tier === 'user-trusted')
+
+    return <SourcesTabContent
+      officialSources={officialSources}
+      userSources={userSources}
+      onSourceAdded={() => {
+        // Reload sources list — browse-sources merges official + user
+        window.electronAPI.skills.browseSources().then((srcs) => {
+          setSources(srcs)
+          if (!selectedSource && srcs.length > 0) setSelectedSource(srcs[0])
+        }).catch(() => {})
+      }}
+      t={t}
+    />
   }
 
   // ── Install from URL tab ─────────────────────────────────────────────────────
@@ -538,7 +564,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
 
         {/* Tabs */}
         <div className="flex gap-1 border-b border-ag-border px-4 pt-3 shrink-0">
-          {(['browse', 'url'] as const).map((tab) => (
+          {(['browse', 'url', 'sources'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -549,16 +575,160 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
                   : 'text-ag-text-3 hover:text-ag-text-2'
               )}
             >
-              {tab === 'browse' ? t('browse.tabs.browse') : t('browse.tabs.url')}
+              {tab === 'browse' ? t('browse.tabs.browse') : tab === 'url' ? t('browse.tabs.url') : t('sources.tab')}
             </button>
           ))}
         </div>
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto">
-          {activeTab === 'browse' ? renderBrowseTab() : renderInstallTab()}
+          {activeTab === 'browse' ? renderBrowseTab() : activeTab === 'url' ? renderInstallTab() : renderSourcesTab()}
         </div>
       </div>
     </>
+  )
+}
+
+// ── Sources tab sub-component ─────────────────────────────────────────────────
+
+interface SourcesTabContentProps {
+  officialSources: SkillSource[]
+  userSources: SkillSource[]
+  onSourceAdded: () => void
+  t: ReturnType<typeof useTranslation>['t']
+}
+
+function SourcesTabContent({ officialSources, userSources, onSourceAdded, t }: SourcesTabContentProps): JSX.Element {
+  const [addUrl, setAddUrl] = useState('')
+  const [addState, setAddState] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [addError, setAddError] = useState<string | null>(null)
+  const [localUserSources, setLocalUserSources] = useState<SkillSource[]>(userSources)
+
+  // Keep local state in sync when parent reloads sources
+  if (localUserSources !== userSources && userSources.length !== localUserSources.length) {
+    setLocalUserSources(userSources)
+  }
+
+  function errorLabel(code: string): string {
+    switch (code) {
+      case 'NOT_GITHUB': return t('sources.errors.NOT_GITHUB')
+      case 'ALREADY_EXISTS': return t('sources.errors.ALREADY_EXISTS')
+      case 'ALREADY_OFFICIAL': return t('sources.errors.ALREADY_OFFICIAL')
+      default: return t('sources.errors.GENERIC')
+    }
+  }
+
+  async function handleAdd(): Promise<void> {
+    const url = addUrl.trim()
+    if (!url) return
+    setAddState('loading')
+    setAddError(null)
+    try {
+      const result = await window.electronAPI.sources.add(url)
+      if (result.error) {
+        setAddError(errorLabel(result.error))
+        setAddState('error')
+      } else if (result.source) {
+        setLocalUserSources((prev) => [...prev, result.source!])
+        setAddUrl('')
+        setAddState('idle')
+        onSourceAdded()
+      }
+    } catch {
+      setAddError(t('sources.errors.GENERIC'))
+      setAddState('error')
+    }
+  }
+
+  async function handleRemove(id: string): Promise<void> {
+    await window.electronAPI.sources.remove(id)
+    setLocalUserSources((prev) => prev.filter((s) => s.id !== id))
+    onSourceAdded()
+  }
+
+  return (
+    <div className="flex flex-col gap-5 px-4 py-4">
+      {/* Official sources (read-only) */}
+      <div>
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-ag-text-3">
+          {t('sources.officialSection')}
+        </div>
+        <div className="flex flex-col gap-2">
+          {officialSources.map((src) => (
+            <div
+              key={src.id}
+              className="flex items-center justify-between gap-3 rounded-xl border border-ag-border bg-ag-surface-2 px-4 py-3"
+            >
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-ag-text-1">{src.name}</div>
+                {src.description && <div className="mt-0.5 text-xs text-ag-text-3 truncate">{src.description}</div>}
+              </div>
+              <span className={trustBadge({ tier: 'trusted' })}>{t('sources.official')}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* User sources */}
+      <div>
+        <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-ag-text-3">
+          {t('sources.userSection')}
+        </div>
+        {localUserSources.length === 0 ? (
+          <p className="text-xs text-ag-text-3">{t('sources.noUserSources')}</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {localUserSources.map((src) => (
+              <div
+                key={src.id}
+                className="group flex items-center justify-between gap-3 rounded-xl border border-ag-border bg-ag-surface-2 px-4 py-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-ag-text-1">{src.name}</div>
+                  {src.description && <div className="mt-0.5 text-xs text-ag-text-3 truncate">{src.description}</div>}
+                  <div className="mt-0.5 text-[10px] font-mono text-ag-text-3 truncate">{src.url}</div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className={trustBadge({ tier: 'user-trusted' })}>{t('sources.userTrusted')}</span>
+                  <button
+                    onClick={() => void handleRemove(src.id)}
+                    title={t('sources.removeConfirm')}
+                    className="rounded p-1 text-ag-text-3 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-400"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add source form */}
+      <div>
+        <p className="mb-2 text-xs text-ag-text-3">{t('sources.addHelper')}</p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={addUrl}
+            onChange={(e) => { setAddUrl(e.target.value); setAddState('idle'); setAddError(null) }}
+            onKeyDown={(e) => { if (e.key === 'Enter') void handleAdd() }}
+            placeholder={t('sources.addPlaceholder')}
+            className="flex-1 rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 outline-none focus:border-accent-border focus:ring-1 focus:ring-accent/20 transition-colors"
+          />
+          <button
+            onClick={() => void handleAdd()}
+            disabled={addState === 'loading' || !addUrl.trim()}
+            className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
+          >
+            {addState === 'loading' ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+            {addState === 'loading' ? t('sources.adding') : t('common.add')}
+          </button>
+        </div>
+        {addState === 'error' && addError && (
+          <p className="mt-2 text-xs text-red-400">{addError}</p>
+        )}
+      </div>
+    </div>
   )
 }

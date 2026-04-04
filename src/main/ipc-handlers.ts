@@ -34,7 +34,7 @@ import {
 import { parseGitHubUrl, fetchRepoInfo, fetchSkillPreview, fetchDirectoryContents, setGitHubToken } from './github-api'
 import { TRUSTED_SOURCES, resolveTrustTier } from './skills-allowlist'
 import { installSkill, uninstallSkill } from './skills-installer'
-import { getSkillMeta, saveSkillMeta, removeSkillMeta, getAllSkillMeta, getGitHubToken, saveGitHubToken, clearGitHubToken } from './surreal-store'
+import { getSkillMeta, saveSkillMeta, removeSkillMeta, getAllSkillMeta, getGitHubToken, saveGitHubToken, clearGitHubToken, listUserSources, addUserSource, removeUserSource, updateUserSource } from './surreal-store'
 import { cacheWrap, cacheDeletePrefix } from './github-cache'
 
 export function registerIpcHandlers(): void {
@@ -206,7 +206,13 @@ export function registerIpcHandlers(): void {
 
   // ── Skills install ──────────────────────────────────────────────────────────
 
-  ipcMain.handle('skills:browse-sources', () => TRUSTED_SOURCES)
+  ipcMain.handle('skills:browse-sources', () => {
+    const userSources = listUserSources()
+    return [
+      ...TRUSTED_SOURCES.map((s) => ({ ...s, tier: 'official' as const })),
+      ...userSources.map((s) => ({ ...s, tier: 'user-trusted' as const }))
+    ]
+  })
 
   ipcMain.handle('skills:preview-url', async (_event, url: string) => {
     const ref = parseGitHubUrl(url)
@@ -241,6 +247,10 @@ export function registerIpcHandlers(): void {
 
     try {
       const installPath = await installSkill(ref, skillName)
+      const officialTier = resolveTrustTier(ref.owner, ref.repo)
+      const isUserTrusted = officialTier !== 'trusted'
+        && listUserSources().some((s) => s.owner === ref.owner && s.repo === ref.repo)
+      const trustTier = officialTier === 'trusted' ? 'trusted' : isUserTrusted ? 'user-trusted' : officialTier
       saveSkillMeta({
         skillName,
         sourceUrl: `https://github.com/${ref.owner}/${ref.repo}/tree/${ref.branch}/${ref.path}`,
@@ -248,7 +258,7 @@ export function registerIpcHandlers(): void {
         sourceRepo: ref.repo,
         sourcePath: ref.path,
         sourceBranch: ref.branch,
-        trustTier: resolveTrustTier(ref.owner, ref.repo),
+        trustTier,
         installedAt: new Date().toISOString()
       })
       // Invalidate source list cache so isInstalled reflects the new state
@@ -276,6 +286,7 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('skills:list-from-source', async (_event, sourceId: string) => {
     const source = TRUSTED_SOURCES.find((s) => s.id === sourceId)
+      ?? listUserSources().find((s) => s.id === sourceId)
     if (!source) return { skills: [], error: null }
 
     const cacheKey = `source:${sourceId}`
@@ -335,6 +346,101 @@ export function registerIpcHandlers(): void {
     cacheDeletePrefix('source:')
     cacheDeletePrefix('preview:')
     return { success: true }
+  })
+
+  // ── User sources ────────────────────────────────────────────────────────────
+
+  ipcMain.handle('sources:add', async (_event, url: string) => {
+    const ref = parseGitHubUrl(url)
+    if (!ref) return { error: 'NOT_GITHUB' }
+
+    const isOfficial = TRUSTED_SOURCES.some((s) => s.owner === ref.owner && s.repo === ref.repo)
+    if (isOfficial) return { error: 'ALREADY_OFFICIAL' }
+
+    const userSources = listUserSources()
+    const isDuplicate = userSources.some(
+      (s) => s.owner === ref.owner && s.repo === ref.repo && s.path === ref.path
+    )
+    if (isDuplicate) return { error: 'ALREADY_EXISTS' }
+
+    let name = `${ref.owner}/${ref.repo}`
+    let description = ''
+    try {
+      const repoInfo = await fetchRepoInfo(ref.owner, ref.repo)
+      if (repoInfo.description) description = repoInfo.description
+    } catch {
+      // Proceed without repo info — name stays as owner/repo
+    }
+
+    const source = addUserSource({
+      name,
+      description,
+      owner: ref.owner,
+      repo: ref.repo,
+      path: ref.path,
+      branch: ref.branch,
+      url: ref.path
+        ? `https://github.com/${ref.owner}/${ref.repo}/tree/${ref.branch}/${ref.path}`
+        : `https://github.com/${ref.owner}/${ref.repo}`
+    })
+    cacheDeletePrefix('source:')
+    return { source: { ...source, tier: 'user-trusted' } }
+  })
+
+  ipcMain.handle('sources:remove', (_event, id: string) => {
+    removeUserSource(id)
+    cacheDeletePrefix('source:')
+    return { success: true }
+  })
+
+  ipcMain.handle('sources:update', (_event, id: string, meta: { name?: string; description?: string }) => {
+    const updated = updateUserSource(id, meta)
+    return updated ? { source: { ...updated, tier: 'user-trusted' } } : { error: 'NOT_FOUND' }
+  })
+
+  // ── Settings write ──────────────────────────────────────────────────────────
+
+  ipcMain.handle('settings:write', (_event, filePath: string, content: string) => {
+    try {
+      writeFileSync(filePath, content, 'utf-8')
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'WRITE_FAILED' }
+    }
+  })
+
+  ipcMain.handle('settings:create', (_event, filePath: string) => {
+    try {
+      if (!existsSync(filePath)) {
+        const dir = filePath.split('/').slice(0, -1).join('/')
+        if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+        writeFileSync(filePath, '{}', 'utf-8')
+      }
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'CREATE_FAILED' }
+    }
+  })
+
+  // Creates .claude/settings.json for a given workspace path (or global ~/.claude if path is empty)
+  ipcMain.handle('settings:create-for-workspace', (_event, workspacePath: string) => {
+    try {
+      const dotClaude = workspacePath
+        ? join(workspacePath, '.claude')
+        : join(homedir(), '.claude')
+      if (!existsSync(dotClaude)) mkdirSync(dotClaude, { recursive: true })
+      const filePath = join(dotClaude, 'settings.json')
+      if (!existsSync(filePath)) writeFileSync(filePath, '{}', 'utf-8')
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'CREATE_FAILED' }
+    }
+  })
+
+  ipcMain.handle('dialog:pick-folder', async (event) => {
+    const win = event.sender.getOwnerBrowserWindow()
+    const result = await dialog.showOpenDialog(win!, { properties: ['openDirectory'] })
+    return result.canceled ? null : result.filePaths[0]
   })
 
   ipcMain.handle('avatar:pick', async (event) => {

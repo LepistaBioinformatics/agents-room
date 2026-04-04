@@ -57,10 +57,11 @@ export const cardShell = cva(
 export const trustBadge = cva('px-2 py-0.5 text-[11px] font-medium border', {
   variants: {
     tier: {
-      trusted: 'bg-emerald-950/40 border-emerald-800/40 text-emerald-300',
-      known:   'bg-yellow-950/40  border-yellow-800/40  text-yellow-300',
-      unknown: 'bg-red-950/40     border-red-800/40     text-red-300',
-      local:   'bg-ag-surface-2   border-ag-border       text-ag-text-3',
+      trusted:      'bg-emerald-950/40 border-emerald-800/40 text-emerald-300',
+      'user-trusted': 'bg-sky-950/40   border-sky-800/40   text-sky-300',
+      known:        'bg-yellow-950/40  border-yellow-800/40  text-yellow-300',
+      unknown:      'bg-red-950/40     border-red-800/40     text-red-300',
+      local:        'bg-ag-surface-2   border-ag-border       text-ag-text-3',
     }
   },
   defaultVariants: { tier: 'local' }

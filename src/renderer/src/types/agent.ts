@@ -31,7 +31,8 @@ export interface AgentView extends AgentWithRelations {
 
 // ── Skills ────────────────────────────────────────────────────────────────────
 
-export type TrustTier = 'trusted' | 'known' | 'unknown'
+export type TrustTier = 'trusted' | 'user-trusted' | 'known' | 'unknown'
+export type SourceTier = 'official' | 'user-trusted'
 
 export interface SkillMeta {
   skillName: string
@@ -77,6 +78,7 @@ export interface SkillSource {
   path: string
   branch: string
   url: string
+  tier: SourceTier
 }
 
 export interface SkillPreview {

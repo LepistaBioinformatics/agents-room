@@ -10,7 +10,8 @@ import type {
   GitHubRef,
   RemoteSkillCard,
   SkillSource,
-  SkillPreview
+  SkillPreview,
+  SourceTier
 } from '../renderer/src/types/agent'
 
 export interface GitHubTokenStatus {
@@ -23,6 +24,12 @@ export interface ElectronAPI {
     getGitHubToken: () => Promise<GitHubTokenStatus>
     setGitHubToken: (token: string) => Promise<{ success?: boolean; error?: string }>
     clearGitHubToken: () => Promise<{ success: boolean }>
+    write: (filePath: string, content: string) => Promise<{ success?: boolean; error?: string }>
+    create: (filePath: string) => Promise<{ success?: boolean; error?: string }>
+    createForWorkspace: (workspacePath: string) => Promise<{ success?: boolean; error?: string }>
+  }
+  dialog: {
+    pickFolder: () => Promise<string | null>
   }
   workspaces: {
     list: () => Promise<WorkspaceEntry[]>
@@ -33,6 +40,11 @@ export interface ElectronAPI {
     readClaudeMd: (workspacePath: string) => Promise<{ content: string; resolvedPath: string }>
     writeClaudeMd: (workspacePath: string, content: string) => Promise<void>
     readSettings: (workspacePath: string) => Promise<Array<{ filename: string; path: string; content: string }>>
+  }
+  sources: {
+    add: (url: string) => Promise<{ source?: SkillSource & { tier: SourceTier }; error?: string }>
+    remove: (id: string) => Promise<{ success: boolean }>
+    update: (id: string, meta: { name?: string; description?: string }) => Promise<{ source?: SkillSource & { tier: SourceTier }; error?: string }>
   }
   canvas: {
     getPosition: (id: string) => Promise<CanvasPosition | null>
@@ -72,7 +84,18 @@ const api: ElectronAPI = {
   settings: {
     getGitHubToken: () => ipcRenderer.invoke('settings:get-github-token'),
     setGitHubToken: (token) => ipcRenderer.invoke('settings:set-github-token', token),
-    clearGitHubToken: () => ipcRenderer.invoke('settings:clear-github-token')
+    clearGitHubToken: () => ipcRenderer.invoke('settings:clear-github-token'),
+    write: (filePath, content) => ipcRenderer.invoke('settings:write', filePath, content),
+    create: (filePath) => ipcRenderer.invoke('settings:create', filePath),
+    createForWorkspace: (workspacePath) => ipcRenderer.invoke('settings:create-for-workspace', workspacePath)
+  },
+  dialog: {
+    pickFolder: () => ipcRenderer.invoke('dialog:pick-folder')
+  },
+  sources: {
+    add: (url) => ipcRenderer.invoke('sources:add', url),
+    remove: (id) => ipcRenderer.invoke('sources:remove', id),
+    update: (id, meta) => ipcRenderer.invoke('sources:update', id, meta)
   },
   workspaces: {
     list: () => ipcRenderer.invoke('workspaces:list'),

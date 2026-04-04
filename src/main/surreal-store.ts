@@ -52,8 +52,20 @@ export interface SkillMeta {
   sourceRepo: string
   sourcePath: string
   sourceBranch: string
-  trustTier: 'trusted' | 'known' | 'unknown'
+  trustTier: 'trusted' | 'user-trusted' | 'known' | 'unknown'
   installedAt: string
+}
+
+export interface UserSource {
+  id: string
+  name: string
+  description: string
+  owner: string
+  repo: string
+  path: string     // subdirectory within repo where skills live; '' = repo root
+  branch: string
+  url: string
+  addedAt: string
 }
 
 interface StoreData {
@@ -63,6 +75,7 @@ interface StoreData {
   trashItems: TrashRecord[]
   canvasPositions: Record<string, CanvasPosition>
   skillMeta: Record<string, SkillMeta>
+  userSources: UserSource[]
   githubToken?: string
 }
 
@@ -132,7 +145,8 @@ function readStore(): StoreData {
       agentMeta: data.agentMeta ?? {},
       trashItems: data.trashItems ?? [],
       canvasPositions: data.canvasPositions ?? {},
-      skillMeta: data.skillMeta ?? {}
+      skillMeta: data.skillMeta ?? {},
+      userSources: data.userSources ?? []
     }
   } catch {
     return {
@@ -141,7 +155,8 @@ function readStore(): StoreData {
       agentMeta: {},
       trashItems: [],
       canvasPositions: {},
-      skillMeta: {}
+      skillMeta: {},
+      userSources: []
     }
   }
 }
@@ -162,7 +177,8 @@ export async function initDB(): Promise<void> {
       agentMeta: {},
       trashItems: [],
       canvasPositions: {},
-      skillMeta: {}
+      skillMeta: {},
+      userSources: []
     })
   }
 }
@@ -354,4 +370,37 @@ export function removeTrashRecord(id: string): void {
 export function getTrashRecord(id: string): TrashRecord | null {
   const stored = readStore().trashItems.find((t) => t.id === id)
   return stored ? unpackTrash(stored) : null
+}
+
+// ── User sources ──────────────────────────────────────────────────────────────
+
+export function listUserSources(): UserSource[] {
+  return readStore().userSources ?? []
+}
+
+export function addUserSource(source: Omit<UserSource, 'id' | 'addedAt'>): UserSource {
+  const data = readStore()
+  const entry: UserSource = { ...source, id: randomUUID(), addedAt: new Date().toISOString() }
+  data.userSources = [...(data.userSources ?? []), entry]
+  writeStore(data)
+  return entry
+}
+
+export function removeUserSource(id: string): void {
+  const data = readStore()
+  data.userSources = (data.userSources ?? []).filter((s) => s.id !== id)
+  writeStore(data)
+}
+
+export function updateUserSource(
+  id: string,
+  meta: Partial<Pick<UserSource, 'name' | 'description'>>
+): UserSource | null {
+  const data = readStore()
+  const entry = (data.userSources ?? []).find((s) => s.id === id)
+  if (!entry) return null
+  if (meta.name !== undefined) entry.name = meta.name
+  if (meta.description !== undefined) entry.description = meta.description
+  writeStore(data)
+  return entry
 }

@@ -166,6 +166,93 @@
       "EMPTY_TOKEN": "Token cannot be empty."
     }
   },
+  "sources": {
+    "tab": "Sources",
+    "officialSection": "Official",
+    "userSection": "Your Sources",
+    "noUserSources": "No user-added sources yet.",
+    "addHelper": "Add a GitHub repo as a browsable skill source.",
+    "addPlaceholder": "https://github.com/owner/repo",
+    "adding": "Adding…",
+    "official": "Official",
+    "userTrusted": "Trusted by you",
+    "removeConfirm": "Click to remove",
+    "errors": {
+      "NOT_GITHUB": "Only GitHub URLs are supported.",
+      "ALREADY_EXISTS": "This source is already in your list.",
+      "ALREADY_OFFICIAL": "Already in the official list.",
+      "GENERIC": "Failed to add source."
+    }
+  },
+  "permissions": {
+    "title": "Permissions",
+    "fileTab": "{{filename}}",
+    "createFile": "Create settings.json",
+    "addPermissions": "Add permissions block",
+    "noRules": "No rules.",
+    "addRule": "+ Add rule",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "saveError": "Save failed — check file permissions.",
+    "duplicateRule": "Rule already exists.",
+    "parseError": "Could not parse this file as JSON.",
+    "editRaw": "Edit raw",
+    "rawHelper": "Editing the raw JSON. Changes are saved when you click Save.",
+    "saveRaw": "Save raw JSON",
+    "sections": {
+      "allow": "Allow",
+      "allowDesc": "Granted without prompt",
+      "ask": "Ask",
+      "askDesc": "Requires confirmation each time",
+      "deny": "Deny",
+      "denyDesc": "Always blocked",
+      "defaultMode": "Default mode",
+      "additionalDirs": "Additional directories"
+    },
+    "defaultMode": {
+      "unset": "default (unset)",
+      "default": "default",
+      "acceptEdits": "acceptEdits — accept all edits without prompt",
+      "plan": "plan — only suggest changes, never apply",
+      "dontAsk": "dontAsk — skip all permission prompts",
+      "bypassPermissions": "bypassPermissions — bypass all safety checks",
+      "auto": "auto — fully automated mode"
+    },
+    "tools": {
+      "Bash": "Bash",
+      "Read": "Read",
+      "Edit": "Edit",
+      "Write": "Write",
+      "Glob": "Glob",
+      "Grep": "Grep",
+      "WebFetch": "WebFetch",
+      "WebSearch": "WebSearch",
+      "mcp__": "MCP",
+      "Agent": "Agent",
+      "custom": "Custom"
+    },
+    "specifierPlaceholders": {
+      "Bash": "npm run *",
+      "Read": "~/Documents/**",
+      "Edit": "/src/**/*.ts",
+      "Write": "/tmp/**",
+      "WebFetch": "github.com",
+      "mcp__server": "server-name",
+      "mcp__tool": "tool-name (optional)",
+      "Agent": "Explore",
+      "custom": "Full rule string"
+    },
+    "pathPrefix": {
+      "label": "Prefix",
+      "project": "/ (project root)",
+      "home": "~/ (home dir)",
+      "absolute": "// (absolute path)",
+      "relative": "./ (relative)"
+    },
+    "noAdditionalDirs": "No additional directories.",
+    "addDirectory": "Add directory",
+    "denyOverridesAllow": "This rule is also in Deny — Deny takes precedence."
+  },
   "browse": {
     "title": "Browse Skills",
     "tabs": {

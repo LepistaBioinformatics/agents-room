@@ -6,6 +6,7 @@ import type { WorkspaceEntry } from '../types/agent'
 import { cn } from '../lib/utils'
 import { AvatarImg } from './AvatarImg'
 import { DrawerShell, SectionBlock, DangerZone } from './ui'
+import { PermissionsEditor } from './PermissionsEditor'
 
 interface SettingsFile {
   filename: string
@@ -22,13 +23,6 @@ interface Props {
 
 const EMOJI_OPTIONS = ['📁', '🚀', '⚙️', '🧠', '🎯', '🔧', '💡', '🌟', '🔬', '🛠️', '🏗️', '🎨', '📦', '🔑', '🌐']
 
-function formatJson(raw: string): string {
-  try {
-    return JSON.stringify(JSON.parse(raw), null, 2)
-  } catch {
-    return raw
-  }
-}
 
 function EmojiPicker({
   anchorRef, onPick, onClose
@@ -276,27 +270,15 @@ export function WorkspaceDetailDrawer({ workspace, onClose, onUpdateMeta, onRemo
               </button>
             </SectionBlock>
 
-            {/* Settings files */}
+            {/* Settings / Permissions editor */}
             <SectionBlock icon={<Settings size={13} />} label={t('workspace.sections.settings')} noBorder={isGlobal}>
-              {settingsFiles.length === 0 ? (
-                <p className="text-xs text-ag-text-3">{t('workspace.noSettings')}</p>
-              ) : (
-                <div className="space-y-4">
-                  {settingsFiles.map((file) => (
-                    <div key={file.path}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px] font-mono font-medium text-ag-text-2">{file.filename}</span>
-                        <span className="text-[10px] text-ag-text-3 font-mono truncate max-w-[260px]" title={file.path}>
-                          {file.path}
-                        </span>
-                      </div>
-                      <pre className="overflow-x-auto rounded-xl border border-ag-border bg-ag-surface-2 px-4 py-3 text-[11px] font-mono text-ag-text-1 leading-relaxed whitespace-pre-wrap break-all">
-                        {file.content ? formatJson(file.content) : <span className="text-ag-text-3">{t('workspace.emptyFile')}</span>}
-                      </pre>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <PermissionsEditor
+                files={settingsFiles}
+                workspacePath={workspace.path}
+                onFilesReloaded={() => {
+                  window.electronAPI.workspaces.readSettings(workspace.path).then(setSettingsFiles)
+                }}
+              />
             </SectionBlock>
 
             {/* Danger zone — remove workspace */}
