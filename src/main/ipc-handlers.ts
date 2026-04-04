@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from 'electron'
+import { ipcMain, dialog, app } from 'electron'
 import { homedir } from 'os'
 import { join, extname } from 'path'
 import { mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync, readdirSync } from 'fs'
@@ -32,6 +32,7 @@ import {
   permanentlyDeleteItem
 } from './file-ops'
 import { parseGitHubUrl, fetchRepoInfo, fetchSkillPreview, fetchDirectoryContents, setGitHubToken } from './github-api'
+import { checkForUpdates, quitAndInstall } from './updater'
 import { TRUSTED_SOURCES, resolveTrustTier } from './skills-allowlist'
 import { installSkill, uninstallSkill } from './skills-installer'
 import { getSkillMeta, saveSkillMeta, removeSkillMeta, getAllSkillMeta, getGitHubToken, saveGitHubToken, clearGitHubToken, listUserSources, addUserSource, removeUserSource, updateUserSource } from './surreal-store'
@@ -436,6 +437,12 @@ export function registerIpcHandlers(): void {
       return { error: err instanceof Error ? err.message : 'CREATE_FAILED' }
     }
   })
+
+  // ── App info + updater ──────────────────────────────────────────────────────
+
+  ipcMain.handle('app:get-version', () => app.getVersion())
+  ipcMain.on('updater:check', () => checkForUpdates())
+  ipcMain.on('updater:install', () => quitAndInstall())
 
   ipcMain.handle('dialog:pick-folder', async (event) => {
     const win = event.sender.getOwnerBrowserWindow()

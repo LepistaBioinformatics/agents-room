@@ -1,4 +1,4 @@
-import { ChevronRight, Plus, PackagePlus } from 'lucide-react'
+import { ChevronRight, Plus, PackagePlus, Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { AvatarImg } from './AvatarImg'
 import type { WorkspaceEntry } from '../types/agent'
@@ -10,6 +10,7 @@ interface Props {
   onUpdateMeta: (id: string, meta: Partial<Pick<WorkspaceEntry, 'name' | 'emoji' | 'tags' | 'displayName' | 'avatarPath'>>) => void
   onOpenDetails: (entry: WorkspaceEntry) => void
   onBrowseSkills: () => void
+  onAbout: () => void
 }
 
 function WorkspaceRow({
@@ -67,7 +68,7 @@ function WorkspaceRow({
   )
 }
 
-export function WorkspaceSidebar({ workspaces, onAdd, onOpenDetails, onBrowseSkills }: Props): JSX.Element {
+export function WorkspaceSidebar({ workspaces, onAdd, onOpenDetails, onBrowseSkills, onAbout }: Props): JSX.Element {
   const { t } = useTranslation()
   return (
     <div className="flex h-full flex-col border-r border-ag-border bg-ag-sidebar">
@@ -98,6 +99,17 @@ export function WorkspaceSidebar({ workspaces, onAdd, onOpenDetails, onBrowseSki
             onOpenDetails={onOpenDetails}
           />
         ))}
+      </div>
+
+      {/* Footer */}
+      <div className="shrink-0 border-t border-ag-border px-3 py-2">
+        <button
+          onClick={onAbout}
+          className="flex w-full items-center gap-1.5 px-2 py-1.5 text-[11px] text-ag-text-3 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-2"
+        >
+          <Info size={11} />
+          About &amp; Updates
+        </button>
       </div>
     </div>
   )

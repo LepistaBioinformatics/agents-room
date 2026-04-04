@@ -10,6 +10,7 @@ import { WorkspaceDetailDrawer } from './WorkspaceDetailDrawer'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { TrashPanel } from './TrashPanel'
 import { BrowseSkillsPanel } from './BrowseSkillsPanel'
+import { AboutModal } from './AboutModal'
 import { useTrash } from '../hooks/useTrash'
 import { cn } from '../lib/utils'
 
@@ -46,6 +47,7 @@ export function AgentsRoom({
   const selectedWorkspace = selectedWorkspaceId ? (workspaces.find((w) => w.id === selectedWorkspaceId) ?? null) : null
   const [globalLoading, setGlobalLoading] = useState(false)
   const [browsePanelOpen, setBrowsePanelOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   const reloadWorkspaceByPath = useCallback((workspacePath: string) => {
     const ws = workspaces.find((w) => w.path === workspacePath)
@@ -169,6 +171,7 @@ export function AgentsRoom({
               onUpdateMeta={onUpdateMeta}
               onOpenDetails={(entry) => setSelectedWorkspaceId(entry.id)}
               onBrowseSkills={() => setBrowsePanelOpen(true)}
+              onAbout={() => setAboutOpen(true)}
             />
           )}
         </div>
@@ -223,6 +226,8 @@ export function AgentsRoom({
           onInstalled={() => onReloadWorkspace('global')}
         />
       )}
+
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
     </div>
   )
 }

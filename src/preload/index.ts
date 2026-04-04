@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import type {
   AgentMeta,
   WorkspaceEntry,
@@ -13,6 +13,9 @@ import type {
   SkillPreview,
   SourceTier
 } from '../renderer/src/types/agent'
+import type { UpdateStatus } from './updater-types'
+
+export type { UpdateStatus }
 
 export interface GitHubTokenStatus {
   configured: boolean
@@ -20,6 +23,14 @@ export interface GitHubTokenStatus {
 }
 
 export interface ElectronAPI {
+  app: {
+    getVersion: () => Promise<string>
+  }
+  updater: {
+    check: () => void
+    install: () => void
+    onStatus: (callback: (status: UpdateStatus) => void) => () => void
+  }
   settings: {
     getGitHubToken: () => Promise<GitHubTokenStatus>
     setGitHubToken: (token: string) => Promise<{ success?: boolean; error?: string }>
@@ -81,6 +92,18 @@ export interface ElectronAPI {
 }
 
 const api: ElectronAPI = {
+  app: {
+    getVersion: () => ipcRenderer.invoke('app:get-version')
+  },
+  updater: {
+    check: () => ipcRenderer.send('updater:check'),
+    install: () => ipcRenderer.send('updater:install'),
+    onStatus: (callback) => {
+      const listener = (_event: IpcRendererEvent, status: UpdateStatus) => callback(status)
+      ipcRenderer.on('updater:status', listener)
+      return () => ipcRenderer.removeListener('updater:status', listener)
+    }
+  },
   settings: {
     getGitHubToken: () => ipcRenderer.invoke('settings:get-github-token'),
     setGitHubToken: (token) => ipcRenderer.invoke('settings:set-github-token', token),

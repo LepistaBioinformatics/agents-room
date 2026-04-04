@@ -39,6 +39,7 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/*.rpm
+            dist/latest-linux.yml
 
   # ── macOS ────────────────────────────────────────────────────────────────────
   build-mac:
@@ -75,6 +76,7 @@ jobs:
           files: |
             dist/*.dmg
             dist/*.zip
+            dist/latest-mac.yml
 
   # ── Windows ──────────────────────────────────────────────────────────────────
   build-win:
@@ -104,6 +106,7 @@ jobs:
           draft: true
           files: |
             dist/*.exe
+            dist/latest.yml
 
   # ── Publish draft → release ──────────────────────────────────────────────────
   publish:

@@ -13,7 +13,10 @@
     "build:all": "electron-vite build && electron-builder --win --mac --linux",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "release:patch": "npm version patch -m 'chore: release v%s' && git push --follow-tags",
+    "release:minor": "npm version minor -m 'chore: release v%s' && git push --follow-tags",
+    "release:major": "npm version major -m 'chore: release v%s' && git push --follow-tags"
   },
   "keywords": [
     "electron",
@@ -28,6 +31,7 @@
     "@fontsource/jetbrains-mono": "^5.2.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "electron-updater": "^6.8.3",
     "gray-matter": "^4.0.3",
     "i18next": "^26.0.3",
     "lucide-react": "^0.468.0",

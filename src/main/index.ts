@@ -5,6 +5,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerIpcHandlers } from './ipc-handlers'
 import { initDB } from './surreal-store'
+import { initUpdater } from './updater'
 
 // Allow loading local files via localfile:// protocol (file:// is blocked by Electron's webSecurity)
 protocol.registerSchemesAsPrivileged([
@@ -78,6 +79,7 @@ app.whenReady().then(async () => {
 
   await initDB()
   registerIpcHandlers()
+  initUpdater()
 
   createWindow()
 
