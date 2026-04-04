@@ -1,7 +1,11 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
-import type { WorkspaceEntry, WorkspaceItems, AgentView, SkillItem, CanvasPosition, TrashItemType } from '../types/agent'
+import type { WorkspaceEntry, WorkspaceItems, AgentView, SkillItem, CommandItem, CanvasPosition, TrashItemType } from '../types/agent'
 import { WorkspaceGroupBox } from './WorkspaceGroupBox'
+
+export interface AgentsCanvasHandle {
+  panTo: (x: number, y: number) => void
+}
 
 interface LoadedWorkspace {
   entry: WorkspaceEntry
@@ -16,7 +20,10 @@ interface Props {
   selectedAgentKey: string | null
   onSelectAgent: (agent: AgentView) => void
   onSelectSkill: (skill: SkillItem) => void
+  onSelectCommand: (command: CommandItem) => void
   onPositionChange: (id: string, pos: CanvasPosition) => void
+  activeTagFilters: Set<string>
+  highlightedItemPath: string | null
   onTrash: (srcPath: string, workspacePath: string, type: TrashItemType, name: string) => Promise<void>
   onDuplicate: (srcPath: string, type: TrashItemType) => Promise<void>
   onCopy: (srcPath: string, targetPath: string, type: TrashItemType) => Promise<void>
@@ -27,12 +34,24 @@ const CANVAS_H = 4000
 const INITIAL_SCALE = 0.85
 const PADDING = 80
 
-export function AgentsCanvas({
+export const AgentsCanvas = forwardRef<AgentsCanvasHandle, Props>(function AgentsCanvas({
   loadedWorkspaces, workspaces, selectedAgentKey,
-  onSelectAgent, onSelectSkill, onPositionChange, onTrash, onDuplicate, onCopy
-}: Props): JSX.Element {
+  onSelectAgent, onSelectSkill, onSelectCommand, onPositionChange, onTrash, onDuplicate, onCopy,
+  activeTagFilters, highlightedItemPath
+}, ref) {
   const transformRef = useRef<ReactZoomPanPinchRef>(null)
   const didInitialCenter = useRef(false)
+
+  useImperativeHandle(ref, () => ({
+    panTo(x: number, y: number) {
+      transformRef.current?.setTransform(
+        -(x * INITIAL_SCALE) + PADDING,
+        -(y * INITIAL_SCALE) + PADDING,
+        INITIAL_SCALE,
+        300
+      )
+    }
+  }))
 
   useEffect(() => {
     if (loadedWorkspaces.size === 0) return
@@ -118,7 +137,10 @@ export function AgentsCanvas({
                   selectedAgentKey={selectedAgentKey}
                   onSelectAgent={onSelectAgent}
                   onSelectSkill={onSelectSkill}
+                  onSelectCommand={onSelectCommand}
                   onPositionChange={(pos) => onPositionChange(ws.entry.id, pos)}
+                  activeTagFilters={activeTagFilters}
+                  highlightedItemPath={highlightedItemPath}
                   onTrash={onTrash}
                   onDuplicate={onDuplicate}
                   onCopy={onCopy}
@@ -130,4 +152,4 @@ export function AgentsCanvas({
       </TransformWrapper>
     </div>
   )
-}
+})

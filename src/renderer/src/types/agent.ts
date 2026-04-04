@@ -105,6 +105,7 @@ export interface SkillItem {
 export interface CommandItem {
   name: string               // filename without .md
   description: string        // first non-empty line of content
+  body: string               // full .md content
   filePath: string
   source: 'global' | 'workspace'
   workspacePath: string

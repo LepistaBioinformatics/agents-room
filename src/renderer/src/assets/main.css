@@ -82,6 +82,18 @@ body {
 ::-webkit-scrollbar-thumb  { background: rgba(128,128,148,0.2); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(128,128,148,0.35); }
 
+/* ── Card flash highlight ── */
+@keyframes card-flash {
+  0%   { box-shadow: 0 0 0 0   rgb(var(--ag-accent) / 0); }
+  20%  { box-shadow: 0 0 0 4px rgb(var(--ag-accent) / 0.7); }
+  50%  { box-shadow: 0 0 0 2px rgb(var(--ag-accent) / 0.4); }
+  80%  { box-shadow: 0 0 0 4px rgb(var(--ag-accent) / 0.7); }
+  100% { box-shadow: 0 0 0 0   rgb(var(--ag-accent) / 0); }
+}
+.card-flash {
+  animation: card-flash 1.2s ease-out;
+}
+
 /* ── Monospace ── */
 code, pre, kbd, samp {
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;

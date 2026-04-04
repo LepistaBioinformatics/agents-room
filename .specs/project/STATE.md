@@ -40,8 +40,11 @@
 | 2026-04-04 | typeBadge: `text-[11px] font-medium` | Was `text-[10px] font-semibold`. Now follows brand guide label spec (11px / 500 / 0.02em tracking). |
 | 2026-04-04 | `docs/brand/` created | Full brand guide in `docs/brand/`: BRAND.md, colors.md, typography.md, voice.md, iconography.md, logo.md, marketing.md + tokens/brand.config.ts + tokens/tailwind.preset.ts. |
 
-| 2026-04-04 | Trusted Sources Registry implemented (P1) | Sources tab in BrowseSkillsPanel; userSources in store.json; sources:add/remove/update IPC; user-trusted tier (blue badge) |
+| 2026-04-04 | Skills Install feature complete (P1+P2) | Browse panel from hardcoded trusted allowlist; install from any GitHub URL; 3-tier trust model (Trusted/Known/Unknown); origin metadata in `store.json` under `skillMeta`; installed-state detection in browse panel; uninstall from detail drawer. Allowlist is hardcoded — updated via app releases only. |
 | 2026-04-04 | Permissions Editor implemented (P1+P2) | PermissionsEditor component in WorkspaceDetailDrawer; structured Allow/Ask/Deny editor; tool picker with context-aware inputs; defaultMode dropdown; additionalDirectories; raw JSON fallback |
+| 2026-04-04 | Command Detail View implemented | `body` added to `CommandItem` + reader; `CommandDetailDrawer` mirrors SkillDetailDrawer; wired via AgentsCanvas → WorkspaceGroupBox |
+| 2026-04-04 | Tag filtering implemented | Filter bar in sidebar (below header); logic D — group visible if workspace.tags OR any agent.meta.tags match; multi-select OR; `highlightedItemPath` state for flash |
+| 2026-04-04 | Global search implemented | `SearchBar` modal (portal, Ctrl+K); searches agents/skills/commands by name, description, model, tools, tags; "Go to" pans canvas + flashes card with `card-flash` CSS keyframe; "Details" opens drawer; keyboard nav (↑↓, Enter, Esc) |
 
 ## Blockers
 
@@ -58,12 +61,7 @@ _None._
 
 ## Todos
 
-- [ ] Command detail view (show command content, usage)
-- [ ] v2: Tag filtering on canvas (filter group boxes by workspace/item tags)
-- [ ] v2: Search agents/skills/commands by name or model
-- [ ] v2: Export canvas as PNG/SVG
-- [ ] v2: Skill creation / editing from UI (create SKILL.md)
-- [ ] Skills install API (install from GitHub URL or local folder into `~/.claude/skills/<name>/`)
+- [ ] v2: Skill / command creation from UI (create SKILL.md or command .md)
 
 ## Deferred Ideas
 

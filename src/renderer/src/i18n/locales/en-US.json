@@ -31,6 +31,22 @@
     "browseInstallSkills": "Browse & install skills",
     "skills": "Skills"
   },
+  "search": {
+    "buttonLabel": "Search…",
+    "placeholder": "Search agents, skills, commands…",
+    "hint": "Type to search agents, skills, and commands.",
+    "goTo": "Go to",
+    "details": "Details",
+    "noResults": "No results found.",
+    "navigate": "to navigate",
+    "open": "to open",
+    "resultCount_one": "{{count}} result",
+    "resultCount_other": "{{count}} results"
+  },
+  "filter": {
+    "label": "Filter by tag",
+    "clear": "Clear"
+  },
   "stats": {
     "workspaceCount_one": "{{count}} workspace",
     "workspaceCount_other": "{{count}} workspaces",
@@ -104,6 +120,21 @@
       "model": "model",
       "source": "source",
       "tools": "tools"
+    }
+  },
+  "cmd": {
+    "sections": {
+      "info": "Info",
+      "body": "Content"
+    },
+    "infoKeys": {
+      "path": "path",
+      "workspace": "workspace"
+    },
+    "noBody": "No content found in this command file.",
+    "source": {
+      "global": "global",
+      "workspace": "workspace"
     }
   },
   "skill": {

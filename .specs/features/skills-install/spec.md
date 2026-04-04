@@ -6,9 +6,9 @@ Claude Code skills are installed manually by copying files into `~/.claude/skill
 
 ## Goals
 
-- [ ] Allow users to discover and install skills from curated trusted sources without leaving the app
-- [ ] Allow users to install any skill directly from a GitHub URL, with explicit trust signals
-- [ ] Mark every installed skill with its origin so users know where it came from
+- [x] Allow users to discover and install skills from curated trusted sources without leaving the app
+- [x] Allow users to install any skill directly from a GitHub URL, with explicit trust signals
+- [x] Mark every installed skill with its origin so users know where it came from
 
 ## Out of Scope
 
@@ -139,17 +139,17 @@ The allowlist ships with the app and includes only sources that have been manual
 
 | Requirement ID | Story | Phase | Status |
 |---|---|---|---|
-| SKILL-01 | P1: Browse trusted sources | Execute | Pending |
-| SKILL-02 | P1: Install from URL | Execute | Pending |
-| SKILL-03 | P1: Origin marking | Execute | Pending |
-| SKILL-04 | P2: Already installed state | Execute | Pending |
-| SKILL-05 | P2: Uninstall from drawer | Execute | Pending |
+| SKILL-01 | P1: Browse trusted sources | Execute | Done |
+| SKILL-02 | P1: Install from URL | Execute | Done |
+| SKILL-03 | P1: Origin marking | Execute | Done |
+| SKILL-04 | P2: Already installed state | Execute | Done |
+| SKILL-05 | P2: Uninstall from drawer | Execute | Done |
 
 ---
 
 ## Success Criteria
 
-- [ ] User can browse a trusted source, install a skill, and see it on the canvas in one flow without leaving the app
-- [ ] Every installed skill has a visible, auditable origin
-- [ ] Installing from an unverified URL requires explicit user acknowledgment of the risk
-- [ ] GitHub API errors never leave a broken install state
+- [x] User can browse a trusted source, install a skill, and see it on the canvas in one flow without leaving the app
+- [x] Every installed skill has a visible, auditable origin
+- [x] Installing from an unverified URL requires explicit user acknowledgment of the risk
+- [x] GitHub API errors never leave a broken install state

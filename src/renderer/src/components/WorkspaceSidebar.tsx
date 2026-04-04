@@ -1,6 +1,7 @@
-import { ChevronRight, Plus, PackagePlus, Info } from 'lucide-react'
+import { ChevronRight, Plus, PackagePlus, Info, Tag, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { AvatarImg } from './AvatarImg'
+import { cn } from '../lib/utils'
 import type { WorkspaceEntry } from '../types/agent'
 
 interface Props {
@@ -11,6 +12,10 @@ interface Props {
   onOpenDetails: (entry: WorkspaceEntry) => void
   onBrowseSkills: () => void
   onAbout: () => void
+  allTags: string[]
+  activeTagFilters: Set<string>
+  onToggleTag: (tag: string) => void
+  onClearTagFilters: () => void
 }
 
 function WorkspaceRow({
@@ -68,7 +73,7 @@ function WorkspaceRow({
   )
 }
 
-export function WorkspaceSidebar({ workspaces, onAdd, onOpenDetails, onBrowseSkills, onAbout }: Props): JSX.Element {
+export function WorkspaceSidebar({ workspaces, onAdd, onOpenDetails, onBrowseSkills, onAbout, allTags, activeTagFilters, onToggleTag, onClearTagFilters }: Props): JSX.Element {
   const { t } = useTranslation()
   return (
     <div className="flex h-full flex-col border-r border-ag-border bg-ag-sidebar">
@@ -91,6 +96,42 @@ export function WorkspaceSidebar({ workspaces, onAdd, onOpenDetails, onBrowseSki
           </button>
         </div>
       </div>
+      {allTags.length > 0 && (
+        <div className="shrink-0 border-b border-ag-border px-3 py-2.5">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ag-text-3">
+              <Tag size={10} />
+              {t('filter.label')}
+            </div>
+            {activeTagFilters.size > 0 && (
+              <button
+                onClick={onClearTagFilters}
+                className="flex items-center gap-0.5 text-[10px] text-ag-text-3 hover:text-ag-text-2 transition-colors"
+                title={t('filter.clear')}
+              >
+                <X size={10} /> {t('filter.clear')}
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => onToggleTag(tag)}
+                className={cn(
+                  'rounded-md border px-2 py-0.5 text-[11px] transition-colors',
+                  activeTagFilters.has(tag)
+                    ? 'border-accent/60 bg-accent/15 text-accent font-medium'
+                    : 'border-ag-border bg-ag-surface-2 text-ag-text-3 hover:text-ag-text-2'
+                )}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {workspaces.map((ws) => (
           <WorkspaceRow

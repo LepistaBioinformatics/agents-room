@@ -2,7 +2,7 @@ import { useRef, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTransformContext } from 'react-zoom-pan-pinch'
 import { Loader2 } from 'lucide-react'
-import type { WorkspaceEntry, WorkspaceItems, AgentView, SkillItem, TrashItemType } from '../types/agent'
+import type { WorkspaceEntry, WorkspaceItems, AgentView, SkillItem, CommandItem, TrashItemType } from '../types/agent'
 import { AgentCard } from './AgentCard'
 import { SkillCard } from './SkillCard'
 import { CommandCard } from './CommandCard'
@@ -19,10 +19,13 @@ interface Props {
   selectedAgentKey: string | null
   onSelectAgent: (agent: AgentView) => void
   onSelectSkill: (skill: SkillItem) => void
+  onSelectCommand: (command: CommandItem) => void
   onPositionChange: (pos: { x: number; y: number }) => void
   onTrash: (srcPath: string, workspacePath: string, type: TrashItemType, name: string) => Promise<void>
   onDuplicate: (srcPath: string, type: TrashItemType) => Promise<void>
   onCopy: (srcPath: string, targetPath: string, type: TrashItemType) => Promise<void>
+  activeTagFilters: Set<string>
+  highlightedItemPath: string | null
 }
 
 const CARD_W = 200
@@ -54,9 +57,9 @@ function SubgroupLabel({ color, label, count }: { color: string; label: string; 
 
 export function WorkspaceGroupBox({
   entry, items, loading, position, workspaces,
-  selectedAgentKey, onSelectAgent, onSelectSkill, onPositionChange,
+  selectedAgentKey, onSelectAgent, onSelectSkill, onSelectCommand, onPositionChange, activeTagFilters, highlightedItemPath,
   onTrash, onDuplicate, onCopy
-}: Props): JSX.Element {
+}: Props): JSX.Element | null {
   const { t } = useTranslation()
   const dragStart = useRef<{ mx: number; my: number; bx: number; by: number } | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
@@ -96,6 +99,12 @@ export function WorkspaceGroupBox({
   }
 
   const totalCount = items.agents.length + items.skills.length + items.commands.length
+
+  if (activeTagFilters.size > 0) {
+    const wsMatch = entry.tags.some((tag) => activeTagFilters.has(tag))
+    const agentMatch = items.agents.some((a) => a.meta?.tags?.some((tag) => activeTagFilters.has(tag)))
+    if (!wsMatch && !agentMatch) return null
+  }
 
   return (
     <>
@@ -176,6 +185,7 @@ export function WorkspaceGroupBox({
                   key={`${agent.name}::${agent.filePath}`}
                   agent={agent}
                   isSelected={selectedAgentKey === `${agent.name}::${agent.filePath}`}
+                  isFlashing={highlightedItemPath === agent.filePath}
                   onOpen={() => onSelectAgent(agent)}
                   onContextMenu={(e) => openContextMenu(e, agent.filePath, 'agent', agent.name)}
                 />
@@ -191,6 +201,7 @@ export function WorkspaceGroupBox({
                   key={skill.folderPath}
                   skill={skill}
                   isSelected={false}
+                  isFlashing={highlightedItemPath === skill.folderPath}
                   onOpen={() => onSelectSkill(skill)}
                   onContextMenu={(e) => openContextMenu(e, skill.folderPath, 'skill', skill.name)}
                 />
@@ -205,7 +216,8 @@ export function WorkspaceGroupBox({
                 <CommandCard
                   key={cmd.filePath}
                   command={cmd}
-                  onClick={() => {}}
+                  isFlashing={highlightedItemPath === cmd.filePath}
+                  onClick={() => onSelectCommand(cmd)}
                   onContextMenu={(e) => openContextMenu(e, cmd.filePath, 'command', cmd.name)}
                 />
               )} />

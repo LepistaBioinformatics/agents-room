@@ -35,14 +35,13 @@
 
 | Feature | Status | Notes |
 |---|---|---|
-| **Skills install API** | ✅ Done | Install Claude Code skills from GitHub URL into `~/.claude/skills/<name>/`. Browse panel, trust tiers, origin badge, uninstall flow. |
+| **Skills install API** | ✅ Done | Browse trusted sources or paste any GitHub URL; 3-tier trust model (Trusted/Known/Unknown); downloads to `~/.claude/skills/<name>/`; origin badge + provenance in detail drawer; installed-state detection; uninstall from drawer. |
 | **Brand guide** | ✅ Done | Honey Bronze accent, neutral color system, JetBrains Mono, character card layout, group header redesign, `docs/brand/` reference. |
-| Command detail view | Planned | Show content, usage |
-| Tag filtering on canvas | Planned | Filter boxes/cards by tag |
-| Search (name / model / tool) | Planned | Global search bar |
-| Export canvas as PNG/SVG | Planned | html-to-image or similar |
+| **Command detail view** | ✅ Done | Drawer with full .md content; body in CommandItem; wired via canvas |
+| **Tag filtering on canvas** | ✅ Done | Filter bar in sidebar; logic D (workspace OR agent tags); multi-select OR |
+| **Search global** | ✅ Done | Modal (Ctrl+K); agents/skills/commands; pan-to + card flash; keyboard nav |
 | Skill / command creation from UI | Planned | Create / edit SKILL.md or command .md |
-| **Trusted Sources Registry** | ✅ Done | Sources tab; userSources in store.json; user-trusted tier; sources:add/remove IPC. P2 (preview, rename) deferred. |
+| **Trusted Sources Registry** | ✅ Done | Sources tab in Browse panel; userSources in store.json; sources:add/remove/update IPC; user-trusted tier (blue badge). |
 | **Permissions Editor** | ✅ Done | PermissionsEditor in workspace drawer; Allow/Ask/Deny editor; tool picker; defaultMode; additionalDirs; raw fallback. PERM-07/08 deferred. |
 | Migrate store to @surrealdb/node | Planned | Richer queries; requires electron-rebuild setup |
 

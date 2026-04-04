@@ -220,6 +220,7 @@ export async function loadCommandsForWorkspace(
       commands.push({
         name: file.replace('.md', ''),
         description,
+        body: raw,
         filePath,
         source,
         workspacePath

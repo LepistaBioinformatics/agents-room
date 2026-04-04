@@ -10,12 +10,13 @@ type CardShellProps = VariantProps<typeof cardShell>
 interface Props {
   skill: SkillItem
   isSelected: boolean
+  isFlashing?: boolean
   onOpen: () => void
   onContextMenu: (e: React.MouseEvent) => void
   style?: React.CSSProperties
 }
 
-export function SkillCard({ skill, isSelected, onOpen, onContextMenu, style }: Props): JSX.Element {
+export function SkillCard({ skill, isSelected, isFlashing, onOpen, onContextMenu, style }: Props): JSX.Element {
   const { t } = useTranslation()
   const desc = truncate(skill.description, 100)
 
@@ -23,7 +24,7 @@ export function SkillCard({ skill, isSelected, onOpen, onContextMenu, style }: P
     <div
       onContextMenu={onContextMenu}
       style={style}
-      className={cn(cardShell({ kind: 'skill', selected: isSelected as CardShellProps['selected'] }), 'gap-2 p-3.5 group')}
+      className={cn(cardShell({ kind: 'skill', selected: isSelected as CardShellProps['selected'] }), 'gap-2 p-3.5 group', isFlashing && 'card-flash')}
     >
       <div className="text-[13px] font-bold uppercase leading-tight text-ag-text-1">{skill.name}</div>
 

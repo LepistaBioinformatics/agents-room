@@ -5,16 +5,17 @@ import { cardShell, typeBadge } from '../lib/variants'
 
 interface Props {
   command: CommandItem
+  isFlashing?: boolean
   onClick: () => void
   onContextMenu: (e: React.MouseEvent) => void
 }
 
-export function CommandCard({ command, onClick, onContextMenu }: Props): JSX.Element {
+export function CommandCard({ command, isFlashing, onClick, onContextMenu }: Props): JSX.Element {
   const { t } = useTranslation()
   return (
     <div
       onContextMenu={onContextMenu}
-      className={cn(cardShell({ kind: 'command' }), 'gap-2 p-3.5')}
+      className={cn(cardShell({ kind: 'command' }), 'gap-2 p-3.5', isFlashing && 'card-flash')}
     >
       <div className="flex items-center gap-1.5">
         <span className={typeBadge({ kind: 'command' })}>{t('card.cmd')}</span>

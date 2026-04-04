@@ -11,6 +11,7 @@ type CardShellProps = VariantProps<typeof cardShell>
 interface Props {
   agent: AgentView
   isSelected: boolean
+  isFlashing?: boolean
   onOpen: () => void
   onContextMenu?: (e: React.MouseEvent) => void
   style?: React.CSSProperties
@@ -28,7 +29,7 @@ function modelBadgeClass(model: string | null): string {
   return key ? MODEL_BADGE[key] : typeBadge({ model: 'default' })
 }
 
-export function AgentCard({ agent, isSelected, onOpen, onContextMenu, style }: Props): JSX.Element {
+export function AgentCard({ agent, isSelected, isFlashing, onOpen, onContextMenu, style }: Props): JSX.Element {
   const { t } = useTranslation()
   const visibleTools = agent.tools.slice(0, 4)
   const extraTools = agent.tools.length - visibleTools.length
@@ -41,7 +42,8 @@ export function AgentCard({ agent, isSelected, onOpen, onContextMenu, style }: P
       style={style}
       className={cn(
         cardShell({ kind: 'agent', selected: isSelected as CardShellProps['selected'] }),
-        'group overflow-hidden'
+        'group overflow-hidden',
+        isFlashing && 'card-flash'
       )}
     >
       {/* Portrait */}

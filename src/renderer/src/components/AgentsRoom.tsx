@@ -1,11 +1,15 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RefreshCw, Trash2, PanelLeftClose, PanelLeft, Loader2 } from 'lucide-react'
-import type { AgentView, AgentMeta, CanvasPosition, TrashItemType, SkillItem } from '../types/agent'
+import type { AgentView, AgentMeta, CanvasPosition, TrashItemType, SkillItem, CommandItem } from '../types/agent'
 import type { WorkspaceEntry, WorkspaceItems } from '../types/agent'
 import { AgentsCanvas } from './AgentsCanvas'
+import type { AgentsCanvasHandle } from './AgentsCanvas'
+import { SearchBar } from './SearchBar'
+import type { SearchIndexItem } from './SearchBar'
 import { AgentDetailDrawer } from './AgentDetailDrawer'
 import { SkillDetailDrawer } from './SkillDetailDrawer'
+import { CommandDetailDrawer } from './CommandDetailDrawer'
 import { WorkspaceDetailDrawer } from './WorkspaceDetailDrawer'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { TrashPanel } from './TrashPanel'
@@ -43,6 +47,100 @@ export function AgentsRoom({
   const { t } = useTranslation()
   const [selectedAgent, setSelectedAgent] = useState<AgentView | null>(null)
   const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null)
+  const [selectedCommand, setSelectedCommand] = useState<CommandItem | null>(null)
+  const [activeTagFilters, setActiveTagFilters] = useState<Set<string>>(new Set())
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [highlightedItemPath, setHighlightedItemPath] = useState<string | null>(null)
+  const canvasRef = useRef<AgentsCanvasHandle>(null)
+
+  const allTags = useMemo(() => {
+    const tags = new Set<string>()
+    for (const ws of loadedWorkspaces.values()) {
+      ws.entry.tags.forEach((tag) => tags.add(tag))
+      ws.items.agents.forEach((a) => a.meta?.tags?.forEach((tag) => tags.add(tag)))
+    }
+    return Array.from(tags).sort()
+  }, [loadedWorkspaces])
+
+  const toggleTag = (tag: string): void => {
+    setActiveTagFilters((prev) => {
+      const next = new Set(prev)
+      if (next.has(tag)) next.delete(tag)
+      else next.add(tag)
+      return next
+    })
+  }
+
+  const searchIndex = useMemo((): SearchIndexItem[] => {
+    const items: SearchIndexItem[] = []
+    for (const ws of loadedWorkspaces.values()) {
+      const wsName = ws.entry.displayName || ws.entry.name
+      for (const agent of ws.items.agents) {
+        items.push({
+          type: 'agent',
+          name: agent.name,
+          subtitle: agent.model ?? '',
+          tools: agent.tools,
+          tags: agent.meta?.tags ?? [],
+          workspaceId: ws.entry.id,
+          workspaceName: wsName,
+          itemPath: agent.filePath,
+          item: agent
+        })
+      }
+      for (const skill of ws.items.skills) {
+        items.push({
+          type: 'skill',
+          name: skill.name,
+          subtitle: skill.description ?? '',
+          tools: [],
+          tags: [],
+          workspaceId: ws.entry.id,
+          workspaceName: wsName,
+          itemPath: skill.folderPath,
+          item: skill
+        })
+      }
+      for (const cmd of ws.items.commands) {
+        items.push({
+          type: 'command',
+          name: cmd.name,
+          subtitle: cmd.description ?? '',
+          tools: [],
+          tags: [],
+          workspaceId: ws.entry.id,
+          workspaceName: wsName,
+          itemPath: cmd.filePath,
+          item: cmd
+        })
+      }
+    }
+    return items
+  }, [loadedWorkspaces])
+
+  const handleSearchOpenDetails = useCallback((result: SearchIndexItem): void => {
+    if (result.type === 'agent') setSelectedAgent(result.item as AgentView)
+    else if (result.type === 'skill') setSelectedSkill(result.item as SkillItem)
+    else setSelectedCommand(result.item as CommandItem)
+  }, [])
+
+  const handlePanTo = useCallback((workspaceId: string, itemPath: string): void => {
+    const ws = loadedWorkspaces.get(workspaceId)
+    if (ws) canvasRef.current?.panTo(ws.position.x, ws.position.y)
+    setHighlightedItemPath(itemPath)
+    setTimeout(() => setHighlightedItemPath(null), 1400)
+  }, [loadedWorkspaces])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent): void => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
   const selectedWorkspace = selectedWorkspaceId ? (workspaces.find((w) => w.id === selectedWorkspaceId) ?? null) : null
   const [globalLoading, setGlobalLoading] = useState(false)
@@ -128,6 +226,15 @@ export function AgentsRoom({
           {globalLoading && <Loader2 size={12} className="animate-spin text-ag-text-3" />}
         </div>
 
+        <SearchBar
+          searchIndex={searchIndex}
+          onOpenDetails={handleSearchOpenDetails}
+          onPanTo={handlePanTo}
+          open={searchOpen}
+          onOpen={() => setSearchOpen(true)}
+          onClose={() => setSearchOpen(false)}
+        />
+
         <div className="flex items-center gap-1">
           <button
             onClick={handleReload}
@@ -172,6 +279,10 @@ export function AgentsRoom({
               onOpenDetails={(entry) => setSelectedWorkspaceId(entry.id)}
               onBrowseSkills={() => setBrowsePanelOpen(true)}
               onAbout={() => setAboutOpen(true)}
+              allTags={allTags}
+              activeTagFilters={activeTagFilters}
+              onToggleTag={toggleTag}
+              onClearTagFilters={() => setActiveTagFilters(new Set())}
             />
           )}
         </div>
@@ -179,12 +290,16 @@ export function AgentsRoom({
         {/* Canvas */}
         <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 44px)' }}>
           <AgentsCanvas
+            ref={canvasRef}
             loadedWorkspaces={loadedWorkspaces}
             workspaces={workspaces}
             selectedAgentKey={selectedAgentKey}
             onSelectAgent={setSelectedAgent}
             onSelectSkill={setSelectedSkill}
+            onSelectCommand={setSelectedCommand}
             onPositionChange={onPositionChange}
+            activeTagFilters={activeTagFilters}
+            highlightedItemPath={highlightedItemPath}
             onTrash={handleTrash}
             onDuplicate={handleDuplicate}
             onCopy={handleCopy}
@@ -202,6 +317,11 @@ export function AgentsRoom({
         skill={selectedSkill}
         onClose={() => setSelectedSkill(null)}
         onUninstalled={() => onReloadWorkspace('global')}
+      />
+
+      <CommandDetailDrawer
+        command={selectedCommand}
+        onClose={() => setSelectedCommand(null)}
       />
 
       <WorkspaceDetailDrawer
