@@ -44,7 +44,7 @@ Full signatures and render output in `design.md` → "Primitive Specifications".
 **Depends on**: —
 
 **What**:
-1. Install `i18next` and `react-i18next` via npm
+1. Install `i18next` and `react-i18next` via yarn
 2. Create `src/renderer/src/i18n/index.ts` (init + useT re-export)
 3. Create `src/renderer/src/i18n/locales/en-US.json` with ALL strings from design.md
 4. Add side-effect import `import './i18n'` to `src/renderer/src/main.tsx`

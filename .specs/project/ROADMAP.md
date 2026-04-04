@@ -36,11 +36,14 @@
 | Feature | Status | Notes |
 |---|---|---|
 | **Skills install API** | ✅ Done | Install Claude Code skills from GitHub URL into `~/.claude/skills/<name>/`. Browse panel, trust tiers, origin badge, uninstall flow. |
+| **Brand guide** | ✅ Done | Honey Bronze accent, neutral color system, JetBrains Mono, character card layout, group header redesign, `docs/brand/` reference. |
 | Command detail view | Planned | Show content, usage |
 | Tag filtering on canvas | Planned | Filter boxes/cards by tag |
 | Search (name / model / tool) | Planned | Global search bar |
 | Export canvas as PNG/SVG | Planned | html-to-image or similar |
 | Skill / command creation from UI | Planned | Create / edit SKILL.md or command .md |
+| **Trusted Sources Registry** | Specified | Users add own GitHub repos as browsable skill sources; user-trusted tier; stored in store.json |
+| **Permissions Editor** | Specified | Structured allow/ask/deny editor in workspace settings; tool picker, path browser, folder dialog, auto-save |
 | Migrate store to @surrealdb/node | Planned | Richer queries; requires electron-rebuild setup |
 
 ## v3 — Intelligence

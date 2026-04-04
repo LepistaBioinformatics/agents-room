@@ -11,11 +11,11 @@
 **Where:** `/` (project root)  
 **Depends on:** —  
 **Done when:**
-- `npm run dev` launches Electron with a blank React app
+- `yarn dev` launches Electron with a blank React app
 - Tailwind classes render correctly
 - TypeScript compiles without errors
 
-**Gate:** `npm run dev` exits cleanly; Tailwind utility class applies to a test div
+**Gate:** `yarn dev` exits cleanly; Tailwind utility class applies to a test div
 
 ---
 
@@ -152,7 +152,7 @@
 **What:** `electron-builder.yml` — configure Linux AppImage + deb targets. Add `build` script to `package.json`.  
 **Where:** `electron-builder.yml`, `package.json`  
 **Depends on:** T11  
-**Done when:** `npm run build` produces distributable in `dist/`
+**Done when:** `yarn build` produces distributable in `dist/`
 
 **Gate:** `dist/*.AppImage` file exists and is runnable
 

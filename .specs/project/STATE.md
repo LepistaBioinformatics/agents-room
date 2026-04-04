@@ -28,6 +28,21 @@
 | 2026-04-03 | Duplicate workspace prevention | `addWorkspace` in store already deduplicates by path; `useWorkspaces` now also checks `entry.id` before pushing to React state. |
 | 2026-04-03 | Workspace remove: two-step confirmation | Delete button in WorkspaceDetailDrawer requires a second confirmation click in a danger zone section. |
 
+| 2026-04-04 | Brand accent: Honey Bronze `#C8922A` / `#E0A832` (dark) | council/session-010 round-02 consensus. CSS vars as bare RGB channels for Tailwind opacity modifiers. |
+| 2026-04-04 | Neutral color system (no tints) | All `ag-*` surface/card tokens migrated to pure neutrals (neutral.950→neutral.100). Previous system had purple tints throughout. |
+| 2026-04-04 | JetBrains Mono for code/mono | Added `@fontsource/jetbrains-mono`; base reset applies to `code/pre/kbd/samp`. |
+| 2026-04-04 | All card backgrounds unified (same neutral) | `ag-card`, `ag-card-skill`, `ag-card-cmd` all map to same neutral. Type differentiation via top border color + type badge only. |
+| 2026-04-04 | AgentCard as character card | Portrait header (64px, full-width, avatar or initial letter); name UPPERCASE bold; model badge as "class"; description italic; tools as abilities. Source badge removed from card — group already indicates workspace. |
+| 2026-04-04 | SkillCard: name first, badges below | Name uppercase bold at top; skill/trust/model badges below; description italic. Consistent with AgentCard hierarchy. |
+| 2026-04-04 | AvatarImg default `rounded="none"` | Straight-edge system. Added `fill` prop for portrait full-width use. Workspace/sidebar avatars: 40–44px with `border-2 border-accent/50`. |
+| 2026-04-04 | Group header redesign | Avatar as left panel focal point; path always visible (`~/a/b`); tags inline; stats breakdown (N agents · N skills · N commands) color-coded on right. |
+| 2026-04-04 | `handleSaveAgentMeta` bug fix | Was not calling `reloadWorkspace` after save → cards showed stale meta. Fixed + added missing `avatarPath` to saved meta. |
+| 2026-04-04 | typeBadge: `text-[11px] font-medium` | Was `text-[10px] font-semibold`. Now follows brand guide label spec (11px / 500 / 0.02em tracking). |
+| 2026-04-04 | `docs/brand/` created | Full brand guide in `docs/brand/`: BRAND.md, colors.md, typography.md, voice.md, iconography.md, logo.md, marketing.md + tokens/brand.config.ts + tokens/tailwind.preset.ts. |
+
+| 2026-04-04 | Trusted Sources Registry spec created | Users need to add own GitHub repos as browsable skill sources without losing the curated experience |
+| 2026-04-04 | Permissions Editor spec created | Settings are read-only today; full allow/ask/deny editor with Claude Code syntax knowledge needed |
+
 ## Blockers
 
 _None._

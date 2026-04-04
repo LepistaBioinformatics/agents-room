@@ -98,20 +98,20 @@ All paths in `store.json` are stored relative to your home directory (`~/...`). 
 ### Prerequisites
 
 - **Node.js** 18 or later
-- **npm** 9 or later
+- **yarn** 1.22 or later
 
 ### Clone and install
 
 ```bash
 git clone https://github.com/your-org/agent-room-ui.git
 cd agent-room-ui
-npm install
+yarn
 ```
 
 ### Run in development mode
 
 ```bash
-npm run dev
+yarn dev
 ```
 
 > **Linux users:** The app already sets `NO_SANDBOX=1` and `--disable-gpu` automatically. No extra steps needed.
@@ -119,14 +119,14 @@ npm run dev
 ### Build a production binary
 
 ```bash
-npm run build
+yarn build
 ```
 
 The packaged app will be in the `dist/` folder.
 
 ```bash
 # Or build unpacked (no installer, faster iteration)
-npm run build:unpack
+yarn build:unpack
 ```
 
 ---
