@@ -35,6 +35,9 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Keep a ref so callbacks always see the latest values without re-creating
+  const latestRef = { notes, tags, avatarPath }
+
   useEffect(() => {
     if (!agent) return
     setNotes(agent.meta?.notes ?? '')
@@ -44,30 +47,42 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
     setTagInput('')
   }, [agent])
 
-  const handleSave = useCallback(async () => {
+  const save = useCallback(async (patch: Partial<{ notes: string; tags: string[]; avatarPath: string | undefined }>) => {
     if (!agent) return
+    const merged = { ...latestRef, ...patch }
     setSaving(true)
-    await onSaveMeta(agent.name, agent.filePath, { notes, tags, avatarPath })
+    await onSaveMeta(agent.name, agent.filePath, merged)
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
-  }, [agent, notes, tags, avatarPath, onSaveMeta])
+  }, [agent, onSaveMeta]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSave = useCallback(() => save({}), [save])
 
   const addTag = (e: React.KeyboardEvent): void => {
     if (e.key === 'Enter' && tagInput.trim()) {
       const newTag = tagInput.trim()
-      if (!tags.includes(newTag)) setTags((prev) => [...prev, newTag])
+      if (!tags.includes(newTag)) {
+        const newTags = [...tags, newTag]
+        setTags(newTags)
+        void save({ tags: newTags })
+      }
       setTagInput('')
     }
   }
 
   const removeTag = (tag: string): void => {
-    setTags((prev) => prev.filter((t) => t !== tag))
+    const newTags = tags.filter((t) => t !== tag)
+    setTags(newTags)
+    void save({ tags: newTags })
   }
 
   const handlePickAvatar = async (): Promise<void> => {
     const path = await window.electronAPI.avatar.pick()
-    if (path) setAvatarPath(path)
+    if (path) {
+      setAvatarPath(path)
+      void save({ avatarPath: path })
+    }
   }
 
   if (!agent) return null
