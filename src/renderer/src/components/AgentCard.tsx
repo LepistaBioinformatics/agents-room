@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { AgentView } from '../types/agent'
-import { cn, truncate } from '../lib/utils'
+import { cn, truncate, getInitials } from '../lib/utils'
 import { AvatarImg } from './AvatarImg'
 import { CardHoverButton } from './ui'
 import { cardShell, typeBadge } from '../lib/variants'
@@ -30,60 +30,87 @@ function modelBadgeClass(model: string | null): string {
 
 export function AgentCard({ agent, isSelected, onOpen, onContextMenu, style }: Props): JSX.Element {
   const { t } = useTranslation()
-  const visibleTools = agent.tools.slice(0, 3)
+  const visibleTools = agent.tools.slice(0, 4)
   const extraTools = agent.tools.length - visibleTools.length
-  const desc = truncate(agent.description.replace(/^\p{Emoji_Presentation}+\s*/u, ''), 90)
+  const desc = truncate(agent.description.replace(/^\p{Emoji_Presentation}+\s*/u, ''), 100)
+  const initials = getInitials(agent.name)
 
   return (
     <div
       onContextMenu={onContextMenu}
       style={style}
-      className={cn(cardShell({ kind: 'agent', selected: isSelected as CardShellProps['selected'] }), 'gap-2.5 p-3.5 group')}
+      className={cn(
+        cardShell({ kind: 'agent', selected: isSelected as CardShellProps['selected'] }),
+        'group overflow-hidden'
+      )}
     >
-      <div className="flex items-center gap-2">
-        {agent.meta?.avatarPath && (
-          <AvatarImg path={agent.meta.avatarPath} size={28} />
+      {/* Portrait */}
+      <div className="relative h-16 shrink-0 overflow-hidden">
+        {agent.meta?.avatarPath ? (
+          <AvatarImg
+            path={agent.meta.avatarPath}
+            fill
+            rounded="none"
+            className="h-16"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-accent-surface">
+            <span className="text-2xl font-bold text-accent/40 select-none tracking-wide">{initials}</span>
+          </div>
         )}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className={cn(typeBadge({ kind: agent.source === 'global' ? 'global' : 'workspace' }))}>
-            {agent.source}
-          </span>
-          {agent.model && (
-            <span className={modelBadgeClass(agent.model)}>{agent.model}</span>
-          )}
-        </div>
+
+        {/* Notes indicator — overlay top-right */}
+        {agent.meta?.notes && (
+          <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 bg-accent/80" />
+        )}
       </div>
 
-      <div className="text-sm font-semibold uppercase tracking-wide leading-tight text-ag-text-1">{agent.name}</div>
-
-      {desc && <div className="text-[11px] leading-relaxed text-ag-text-2 line-clamp-2">{desc}</div>}
-
-      {agent.meta?.tags && agent.meta.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {agent.meta.tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-indigo-900/30 border border-indigo-800/40 px-1.5 py-0.5 text-[10px] text-indigo-300 dark:text-indigo-300">
-              {tag}
-            </span>
-          ))}
+      {/* Identity + content */}
+      <div className="flex flex-col gap-2 p-3">
+        {/* Name + model */}
+        <div>
+          <div className="text-[13px] font-bold uppercase leading-tight text-ag-text-1">{agent.name}</div>
+          {agent.model && (
+            <div className="mt-1">
+              <span className={modelBadgeClass(agent.model)}>{agent.model}</span>
+            </div>
+          )}
         </div>
-      )}
 
-      {agent.tools.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {visibleTools.map((t) => (
-            <span key={t} className="rounded bg-ag-surface-2 border border-ag-border/60 px-1.5 py-0.5 text-[10px] font-mono text-ag-text-2">
-              {t}
-            </span>
-          ))}
-          {extraTools > 0 && <span className="rounded bg-ag-surface-2 px-1.5 py-0.5 text-[10px] text-ag-text-3">+{extraTools}</span>}
-        </div>
-      )}
+        {/* Description — lore */}
+        {desc && (
+          <p className="text-[11px] italic leading-relaxed text-ag-text-2 line-clamp-2">{desc}</p>
+        )}
 
-      <CardHoverButton onClick={() => onOpen()} label={t('card.viewDetails')} color="indigo" />
+        {/* Tools — abilities */}
+        {agent.tools.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {visibleTools.map((tool) => (
+              <span key={tool} className="border border-ag-border/60 bg-ag-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-ag-text-2">
+                {tool}
+              </span>
+            ))}
+            {extraTools > 0 && (
+              <span className="border border-ag-border/40 px-1.5 py-0.5 text-[10px] font-medium text-ag-text-3">
+                +{extraTools}
+              </span>
+            )}
+          </div>
+        )}
 
-      {agent.meta?.notes && (
-        <div className="absolute bottom-2.5 right-2.5 h-1.5 w-1.5 rounded-full bg-indigo-400/80" />
-      )}
+        {/* Tags — traits */}
+        {agent.meta?.tags && agent.meta.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {agent.meta.tags.map((tag) => (
+              <span key={tag} className="border border-accent-border bg-accent-surface px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <CardHoverButton onClick={() => onOpen()} label={t('card.viewDetails')} />
     </div>
   )
 }

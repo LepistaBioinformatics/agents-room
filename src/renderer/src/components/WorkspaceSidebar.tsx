@@ -22,38 +22,44 @@ function WorkspaceRow({
   const shownName = entry.displayName || entry.name
 
   return (
-    <div className="relative group border border-t-2 border-ag-border border-t-zinc-500/50 bg-ag-surface p-3 transition-colors">
-      <div className="flex items-center gap-2">
-        {/* Avatar */}
-        <AvatarImg path={entry.avatarPath} size={28} />
+    <div className="relative group border border-t-2 border-ag-border border-t-zinc-500/50 bg-ag-surface transition-colors overflow-hidden">
+      <div className="flex items-stretch">
+        {/* Avatar — prominent left panel */}
+        <div className="flex shrink-0 items-center justify-center border-r border-ag-border/60 bg-ag-surface-2/40 px-2.5">
+          <AvatarImg
+            path={entry.avatarPath}
+            size={40}
+            rounded="none"
+            className="border-2 border-accent/50"
+          />
+        </div>
 
-        {/* Emoji */}
-        <span className="text-base leading-none shrink-0">{entry.emoji}</span>
-
-        {/* Name + path */}
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-ag-text-1 leading-tight truncate">{shownName}</div>
+        {/* Content */}
+        <div className="flex-1 min-w-0 px-3 py-2.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-sm leading-none shrink-0">{entry.emoji}</span>
+            <span className="text-sm font-semibold text-ag-text-1 leading-tight truncate">{shownName}</span>
+          </div>
           {entry.path && (
-            <div className="mt-0.5 truncate text-[10px] text-ag-text-3" title={entry.path}>
-              {entry.path}
+            <div className="mt-0.5 truncate text-[10px] font-mono text-ag-text-3" title={entry.path}>
+              ~/{entry.path.split('/').slice(-2).join('/')}
+            </div>
+          )}
+          {entry.tags.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {entry.tags.map((tag) => (
+                <span key={tag} className="border border-ag-border/60 bg-ag-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-ag-text-3">
+                  {tag}
+                </span>
+              ))}
             </div>
           )}
         </div>
       </div>
 
-      {entry.tags.length > 0 && (
-        <div className="mt-2 pl-[60px] flex flex-wrap gap-1">
-          {entry.tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-ag-surface-2 border border-ag-border/60 px-2 py-0.5 text-[10px] text-ag-text-2">
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-
       <button
         onClick={() => onOpenDetails(entry)}
-        className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 rounded-b-xl bg-indigo-600/90 py-1.5 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
+        className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-accent/90 py-1.5 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
       >
         {t('card.viewDetails')} <ChevronRight size={11} />
       </button>

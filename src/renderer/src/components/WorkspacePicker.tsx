@@ -11,7 +11,7 @@ export function WorkspacePicker({ onPick, onGlobalOnly }: Props): JSX.Element {
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-[#0f0f13] text-white">
       <div className="mb-8 flex flex-col items-center gap-3">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600/20 text-indigo-400">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent-surface text-accent">
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
             <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="2" />
             <circle cx="20" cy="20" r="6" fill="currentColor" opacity="0.6" />
@@ -33,7 +33,7 @@ export function WorkspacePicker({ onPick, onGlobalOnly }: Props): JSX.Element {
         <p className="text-sm text-zinc-300">
           {t('picker.description')}
           {' '}
-          <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs text-indigo-300">
+          <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs text-accent">
             {t('picker.globalPath')}
           </code>
           .
@@ -41,7 +41,7 @@ export function WorkspacePicker({ onPick, onGlobalOnly }: Props): JSX.Element {
 
         <button
           onClick={onPick}
-          className="mt-1 flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 active:bg-indigo-700"
+          className="mt-1 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover active:bg-accent/80"
         >
           <FolderOpen size={16} />
           {t('picker.openFolder')}

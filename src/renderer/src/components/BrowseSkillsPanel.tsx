@@ -223,7 +223,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
                 className={cn(
                   'rounded-xl border px-4 py-3 text-left transition-colors',
                   selectedSource?.id === src.id
-                    ? 'border-emerald-700/60 bg-emerald-950/20 text-ag-text-1'
+                    ? 'border-accent-border bg-accent-surface text-ag-text-1'
                     : 'border-ag-border bg-ag-surface-2 text-ag-text-2 hover:border-ag-border hover:text-ag-text-1'
                 )}
               >
@@ -280,7 +280,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
             {sourceSkills.map((skill) => {
               const state = skillInstallState[skill.folderName] ?? 'idle'
               return (
-                <div key={skill.folderName} className="flex items-center justify-between gap-3 border border-t-2 border-ag-border border-t-emerald-700/50 bg-ag-surface-2 px-4 py-3">
+                <div key={skill.folderName} className="flex items-center justify-between gap-3 border border-t-2 border-ag-border border-t-accent-border bg-ag-surface-2 px-4 py-3">
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-ag-text-1">{skill.name || skill.folderName}</div>
                     {skill.description && (
@@ -324,7 +324,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
                       <button
                         onClick={() => void handleSourceInstall(selectedSource, skill)}
                         disabled={state === 'installing'}
-                        className="rounded-md bg-emerald-700 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+                        className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
                       >
                         {state === 'installing' ? t('common.installing') : t('common.install')}
                       </button>
@@ -352,7 +352,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') void handlePreview() }}
             placeholder={t('browse.urlPlaceholder')}
-            className="flex-1 rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 outline-none focus:border-emerald-700/60 focus:ring-1 focus:ring-emerald-700/40 transition-colors"
+            className="flex-1 rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 outline-none focus:border-accent-border focus:ring-1 focus:ring-accent/20 transition-colors"
           />
           <button
             onClick={() => void handlePreview()}
@@ -385,7 +385,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
       (isUnknown && !unknownAcknowledged)
 
     return (
-      <div className="flex flex-col gap-4 border border-t-2 border-ag-border border-t-emerald-700/50 bg-ag-surface-2 px-5 py-4">
+      <div className="flex flex-col gap-4 border border-t-2 border-ag-border border-t-accent-border bg-ag-surface-2 px-5 py-4">
         {/* Skill name + description */}
         <div>
           <div className="text-base font-bold text-ag-text-1">{skill.name}</div>
@@ -441,7 +441,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
                   type="checkbox"
                   checked={unknownAcknowledged}
                   onChange={(e) => setUnknownAcknowledged(e.target.checked)}
-                  className="accent-emerald-600"
+                  className="accent-[color:rgb(var(--ag-accent))]"
                 />
                 {t('browse.trust.unknownCheckbox')}
               </label>
@@ -489,7 +489,7 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
           <button
             onClick={() => void handleInstall(ref, skill.folderName)}
             disabled={installDisabled}
-            className="self-start rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+            className="self-start rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50 transition-colors"
           >
             {installState === 'installing' ? t('common.installing') : t('common.install')}
           </button>

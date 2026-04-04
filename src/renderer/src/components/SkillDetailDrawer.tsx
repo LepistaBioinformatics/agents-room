@@ -52,7 +52,7 @@ export function SkillDetailDrawer({ skill, onClose, onUninstalled }: Props): JSX
       <a
         href={skill.meta.sourceUrl}
         onClick={(e) => { e.preventDefault(); window.open(skill.meta!.sourceUrl) }}
-        className="text-emerald-400 underline decoration-emerald-500/40 hover:text-emerald-300 text-[11px] break-all"
+        className="text-accent underline decoration-accent-border hover:text-accent/80 text-[11px] break-all"
       >
         {skill.meta.sourceUrl}
       </a>
@@ -115,7 +115,7 @@ export function SkillDetailDrawer({ skill, onClose, onUninstalled }: Props): JSX
         <SectionBlock icon={<FileText size={13} />} label={t('skill.sections.prompt')} noBorder={!skill.meta}>
           {skill.body.trim() ? (
             <div className="rounded-xl border border-ag-border bg-ag-surface-2 px-5 py-4">
-              <MarkdownContent accent="emerald">{skill.body}</MarkdownContent>
+              <MarkdownContent>{skill.body}</MarkdownContent>
             </div>
           ) : (
             <p className="text-sm text-ag-text-3">{t('skill.noPrompt')}</p>

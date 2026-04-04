@@ -106,28 +106,63 @@ export function WorkspaceGroupBox({
         {/* Header */}
         <div
           onMouseDown={onHeaderMouseDown}
-          className="flex cursor-grab items-center gap-2.5 rounded-t-2xl border-b border-ag-border/60 bg-ag-surface/60 px-5 py-3.5 active:cursor-grabbing select-none"
+          className="flex cursor-grab items-stretch rounded-t-2xl border-b border-ag-border/60 active:cursor-grabbing select-none overflow-hidden"
         >
-          {entry.avatarPath ? (
-            <AvatarImg path={entry.avatarPath} size={24} />
-          ) : (
-            <span className="text-xl leading-none">{entry.emoji}</span>
-          )}
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-semibold text-ag-text-1 leading-tight">
-              {entry.displayName || entry.name}
-            </span>
-            {entry.path && entry.displayName && (
-              <span className="text-[10px] text-ag-text-3 truncate max-w-[240px] leading-tight">
-                {entry.path.split('/').pop() ?? entry.path}
+          {/* Avatar panel — focal point for workspace identity */}
+          <div className="flex shrink-0 items-center justify-center border-r border-ag-border/60 bg-ag-surface/40 px-3">
+            <AvatarImg
+              path={entry.avatarPath}
+              size={44}
+              rounded="none"
+              className="border-2 border-accent/50"
+            />
+          </div>
+
+          {/* Info */}
+          <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 bg-ag-surface/60 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none shrink-0">{entry.emoji}</span>
+              <span className="text-sm font-semibold text-ag-text-1 leading-tight truncate">
+                {entry.displayName || entry.name}
               </span>
+            </div>
+            <span className="text-[10px] text-ag-text-3 truncate leading-tight font-mono">
+              {entry.path
+                ? `~/${entry.path.split('/').slice(-2).join('/')}`
+                : '~/.claude/agents'}
+            </span>
+            {entry.tags.length > 0 && (
+              <div className="mt-0.5 flex flex-wrap gap-1">
+                {entry.tags.map((tag) => (
+                  <span key={tag} className="border border-ag-border/60 bg-ag-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-ag-text-3">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
-          <div className="ml-auto flex items-center gap-2">
-            {loading && <Loader2 size={12} className="animate-spin text-ag-text-3" />}
-            <span className="rounded-full bg-ag-surface-2 px-2 py-0.5 text-[10px] text-ag-text-3 tabular-nums border border-ag-border/40">
-              {totalCount}
-            </span>
+
+          {/* Stats breakdown */}
+          <div className="flex shrink-0 flex-col items-end justify-center gap-1 bg-ag-surface/60 px-4 py-3">
+            {loading && <Loader2 size={11} className="animate-spin text-ag-text-3 mb-1" />}
+            {items.agents.length > 0 && (
+              <span className="text-[10px] font-medium tabular-nums text-accent">
+                {items.agents.length} {t('canvas.agents').toLowerCase()}
+              </span>
+            )}
+            {items.skills.length > 0 && (
+              <span className="text-[10px] font-medium tabular-nums text-emerald-500">
+                {items.skills.length} {t('canvas.skills').toLowerCase()}
+              </span>
+            )}
+            {items.commands.length > 0 && (
+              <span className="text-[10px] font-medium tabular-nums text-amber-500">
+                {items.commands.length} {t('canvas.commands').toLowerCase()}
+              </span>
+            )}
+            {totalCount === 0 && !loading && (
+              <span className="text-[10px] text-ag-text-3 tabular-nums">0</span>
+            )}
           </div>
         </div>
 
@@ -135,7 +170,7 @@ export function WorkspaceGroupBox({
         <div className="p-5 space-y-6">
           {items.agents.length > 0 && (
             <div>
-              <SubgroupLabel color="text-indigo-500" label={t('canvas.agents')} count={items.agents.length} />
+              <SubgroupLabel color="text-accent" label={t('canvas.agents')} count={items.agents.length} />
               <CardGrid items={items.agents} renderCard={(agent) => (
                 <AgentCard
                   key={`${agent.name}::${agent.filePath}`}

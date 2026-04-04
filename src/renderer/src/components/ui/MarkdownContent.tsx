@@ -4,42 +4,17 @@ import remarkGfm from 'remark-gfm'
 
 interface MarkdownContentProps {
   children: string
-  accent?: 'indigo' | 'emerald'
   className?: string
-}
-
-const accentClasses = {
-  inlineCode: {
-    indigo: 'bg-indigo-950/60 text-indigo-300 border-indigo-900/40',
-    emerald: 'bg-emerald-950/40 text-emerald-300 border-emerald-900/40'
-  },
-  blockquote: {
-    indigo: 'border-indigo-500/40',
-    emerald: 'border-emerald-500/40'
-  },
-  link: {
-    indigo: 'text-indigo-400 decoration-indigo-500/40 hover:text-indigo-300',
-    emerald: 'text-emerald-400 decoration-emerald-500/40 hover:text-emerald-300'
-  },
-  strong: {
-    indigo: 'text-white',
-    emerald: 'text-ag-text-1'
-  },
-  h1: {
-    indigo: 'text-white',
-    emerald: 'text-ag-text-1'
-  }
 }
 
 export function MarkdownContent({
   children,
-  accent = 'indigo',
   className
 }: MarkdownContentProps): JSX.Element {
   const components = React.useMemo(
     () => ({
       h1: ({ children: c }: { children?: React.ReactNode }) => (
-        <h1 className={`mb-3 mt-5 text-base font-bold first:mt-0 ${accentClasses.h1[accent]}`}>{c}</h1>
+        <h1 className="mb-3 mt-5 text-base font-bold first:mt-0 text-ag-text-1">{c}</h1>
       ),
       h2: ({ children: c }: { children?: React.ReactNode }) => (
         <h2 className="mb-2 mt-4 text-sm font-semibold text-ag-text-1 first:mt-0">{c}</h2>
@@ -61,9 +36,7 @@ export function MarkdownContent({
       ),
       code: ({ inline, children: c }: { inline?: boolean; children?: React.ReactNode }) =>
         inline ? (
-          <code
-            className={`rounded px-1.5 py-0.5 text-[11px] font-mono border ${accentClasses.inlineCode[accent]}`}
-          >
+          <code className="rounded px-1.5 py-0.5 text-[11px] font-mono border bg-accent-surface text-accent border-accent-border">
             {c}
           </code>
         ) : (
@@ -75,15 +48,13 @@ export function MarkdownContent({
         </pre>
       ),
       blockquote: ({ children: c }: { children?: React.ReactNode }) => (
-        <blockquote
-          className={`mb-3 border-l-2 pl-3 text-sm italic text-ag-text-2 last:mb-0 ${accentClasses.blockquote[accent]}`}
-        >
+        <blockquote className="mb-3 border-l-2 border-accent-border pl-3 text-sm italic text-ag-text-2 last:mb-0">
           {c}
         </blockquote>
       ),
       hr: () => <hr className="my-4 border-ag-border" />,
       strong: ({ children: c }: { children?: React.ReactNode }) => (
-        <strong className={`font-semibold ${accentClasses.strong[accent]}`}>{c}</strong>
+        <strong className="font-semibold text-ag-text-1">{c}</strong>
       ),
       em: ({ children: c }: { children?: React.ReactNode }) => (
         <em className="italic text-ag-text-1">{c}</em>
@@ -91,7 +62,7 @@ export function MarkdownContent({
       a: ({ href, children: c }: { href?: string; children?: React.ReactNode }) => (
         <a
           href={href}
-          className={`underline ${accentClasses.link[accent]}`}
+          className="underline text-accent decoration-accent-border hover:text-accent/80"
           target="_blank"
           rel="noreferrer"
         >
@@ -121,7 +92,7 @@ export function MarkdownContent({
         <tr className="hover:bg-ag-surface-2/40">{c}</tr>
       )
     }),
-    [accent]
+    []
   )
 
   return (

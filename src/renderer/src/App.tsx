@@ -25,11 +25,15 @@ export default function App(): JSX.Element {
         sourcePath,
         notes: patch.notes ?? existing?.notes ?? '',
         tags: patch.tags ?? existing?.tags ?? [],
+        avatarPath: patch.avatarPath ?? existing?.avatarPath,
         updatedAt: new Date().toISOString()
       }
       await window.electronAPI.agentMeta.save(updated)
+      // Reload the workspace so cards reflect the updated meta immediately
+      const ws = workspaces.find((w) => w.path !== '' && sourcePath.startsWith(w.path))
+      reloadWorkspace(ws?.id ?? 'global')
     },
-    []
+    [workspaces, reloadWorkspace]
   )
 
   return (

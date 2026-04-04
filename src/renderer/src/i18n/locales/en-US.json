@@ -85,6 +85,7 @@
   },
   "agent": {
     "changeAvatar": "Change avatar",
+    "addAvatar": "Add avatar",
     "sections": {
       "tags": "Tags",
       "tools": "Tools",

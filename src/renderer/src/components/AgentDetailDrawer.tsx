@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Save, FileText, Wrench, GitBranch, Database, StickyNote, Tag } from 'lucide-react'
+import { X, Save, FileText, Wrench, GitBranch, Database, StickyNote, Tag, Camera } from 'lucide-react'
 import { AgentView, AgentMeta } from '../types/agent'
-import { cn } from '../lib/utils'
+import { cn, getInitials } from '../lib/utils'
 import { AvatarImg } from './AvatarImg'
 import { typeBadge } from '../lib/variants'
 import { DrawerShell, SectionBlock, InfoTable, MarkdownContent } from './ui'
@@ -93,43 +93,61 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
 
   return (
     <DrawerShell onClose={onClose}>
-      {/* Header */}
-      <div className="flex shrink-0 items-start justify-between gap-4 border-b border-ag-border bg-ag-surface-2 px-6 py-5">
-        <div className="flex items-start gap-4 flex-1 min-w-0">
-          {/* Avatar */}
-          <button
-            onClick={handlePickAvatar}
-            title={t('agent.changeAvatar')}
-            className="shrink-0 mt-0.5 hover:opacity-80 transition-opacity"
-          >
-            <AvatarImg path={avatarPath} size={48} rounded="xl" />
-          </button>
+      {/* Header — portrait strip */}
+      <div className="shrink-0 border-b border-ag-border">
+        {/* Portrait area */}
+        <button
+          onClick={handlePickAvatar}
+          title={t('agent.changeAvatar')}
+          className="relative block w-full h-28 overflow-hidden group/portrait"
+        >
+          {avatarPath ? (
+            <AvatarImg path={avatarPath} fill rounded="none" className="h-28" />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-accent-surface border-b-2 border-dashed border-accent/30">
+              <span className="text-4xl font-bold text-accent/40 tracking-widest select-none">
+                {getInitials(agent.name)}
+              </span>
+            </div>
+          )}
+          {/* Camera overlay */}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover/portrait:opacity-100">
+            <div className="flex flex-col items-center gap-1.5">
+              <Camera size={22} className="text-white" />
+              <span className="text-[11px] font-medium text-white/90">
+                {avatarPath ? t('agent.changeAvatar') : t('agent.addAvatar')}
+              </span>
+            </div>
+          </div>
+        </button>
 
+        {/* Identity below portrait */}
+        <div className="flex items-start justify-between gap-3 bg-ag-surface-2 px-5 py-3.5">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-1.5">
-              <span className={cn('rounded-md', typeBadge({ kind: agent.source === 'global' ? 'global' : 'workspace' }))}>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className={typeBadge({ kind: agent.source === 'global' ? 'global' : 'workspace' })}>
                 {agent.source}
               </span>
               {agent.model && (
-                <span className="rounded-md bg-ag-surface-2 border border-ag-border px-2 py-0.5 text-[11px] text-ag-text-1">
+                <span className="border border-ag-border/50 bg-ag-surface px-1.5 py-0.5 text-[10px] font-medium text-ag-text-2">
                   {modelLabel(agent.model)}
                 </span>
               )}
             </div>
-            <h2 className="text-lg font-bold text-ag-text-1 tracking-tight leading-tight">{agent.name}</h2>
+            <h2 className="text-[15px] font-bold uppercase tracking-wide text-ag-text-1 leading-tight">{agent.name}</h2>
             {agent.description && (
-              <p className="mt-1 text-xs text-ag-text-2 leading-relaxed line-clamp-2">
+              <p className="mt-1 text-[11px] italic text-ag-text-2 leading-relaxed line-clamp-2">
                 {agent.description}
               </p>
             )}
           </div>
+          <button
+            onClick={onClose}
+            className="shrink-0 p-1.5 text-ag-text-3 transition-colors hover:text-ag-text-2"
+          >
+            <X size={16} />
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className="shrink-0 rounded-lg p-2 text-ag-text-3 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-2"
-        >
-          <X size={18} />
-        </button>
       </div>
 
       {/* Scrollable content */}
@@ -144,12 +162,12 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="flex items-center gap-1.5 rounded-full bg-indigo-900/30 border border-indigo-800/40 px-2.5 py-1 text-xs text-indigo-300"
+                className="flex items-center gap-1.5 rounded-full bg-accent-surface border border-accent-border px-2 py-0.5 text-[11px] font-medium tracking-wide text-accent"
               >
                 {tag}
                 <button
                   onClick={() => removeTag(tag)}
-                  className="text-indigo-400/60 hover:text-indigo-300 transition-colors"
+                  className="text-accent/60 hover:text-accent transition-colors"
                 >
                   <X size={10} />
                 </button>
@@ -161,7 +179,7 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={addTag}
             placeholder={t('agent.addTag')}
-            className="w-full rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+            className="w-full rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent-border focus:outline-none focus:ring-1 focus:ring-accent/20 transition-colors"
           />
         </SectionBlock>
 
@@ -236,7 +254,7 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
             noBorder={!hasNotes}
           >
             <div className="rounded-xl border border-ag-border bg-ag-surface-2 px-5 py-4">
-              <MarkdownContent accent="indigo">{agent.body}</MarkdownContent>
+              <MarkdownContent>{agent.body}</MarkdownContent>
             </div>
           </SectionBlock>
         )}
@@ -253,7 +271,7 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
             onChange={(e) => setNotes(e.target.value)}
             placeholder={t('agent.notesPlaceholder')}
             rows={5}
-            className="w-full resize-none rounded-xl border border-ag-border bg-ag-surface-2 px-4 py-3 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+            className="w-full resize-none rounded-xl border border-ag-border bg-ag-surface-2 px-4 py-3 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent-border focus:outline-none focus:ring-1 focus:ring-accent/20 transition-colors"
           />
           <button
             onClick={handleSave}
@@ -262,7 +280,7 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
               'mt-2.5 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
               saved
                 ? 'bg-emerald-700/80 text-emerald-100'
-                : 'bg-indigo-600/90 text-white hover:bg-indigo-600 disabled:opacity-50'
+                : 'bg-accent/90 text-white hover:bg-accent disabled:opacity-50'
             ].join(' ')}
           >
             <Save size={13} />

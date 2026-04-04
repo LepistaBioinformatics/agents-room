@@ -110,7 +110,7 @@ export function AgentsRoom({
           <div className="h-4 w-px bg-ag-border" />
 
           <div className="flex items-center gap-2">
-            <div className="h-4 w-4 text-indigo-400">
+            <div className="h-4 w-4 text-accent">
               <svg viewBox="0 0 16 16" fill="none">
                 <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
                 <circle cx="8" cy="8" r="2.5" fill="currentColor" opacity="0.7" />

@@ -203,7 +203,7 @@ export function WorkspaceDetailDrawer({ workspace, onClose, onUpdateMeta, onRemo
                 onBlur={commitDisplayName}
                 onKeyDown={(e) => { if (e.key === 'Enter') { commitDisplayName(); e.currentTarget.blur() } }}
                 placeholder={workspace.name}
-                className="flex-1 rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+                className="flex-1 rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent-border focus:outline-none focus:ring-1 focus:ring-accent/20 transition-colors"
               />
             </div>
           </SectionBlock>
@@ -238,7 +238,7 @@ export function WorkspaceDetailDrawer({ workspace, onClose, onUpdateMeta, onRemo
                 }
               }}
               placeholder={t('workspace.addTag')}
-              className="w-full rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+              className="w-full rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent-border focus:outline-none focus:ring-1 focus:ring-accent/20 transition-colors"
             />
           </SectionBlock>
         )}
@@ -259,7 +259,7 @@ export function WorkspaceDetailDrawer({ workspace, onClose, onUpdateMeta, onRemo
                 onChange={(e) => setClaudeMd(e.target.value)}
                 placeholder={t('workspace.claudeMdPlaceholder')}
                 rows={12}
-                className="w-full resize-none rounded-xl border border-ag-border bg-ag-surface-2 px-4 py-3 text-sm font-mono text-ag-text-1 placeholder:text-ag-text-3 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+                className="w-full resize-none rounded-xl border border-ag-border bg-ag-surface-2 px-4 py-3 text-sm font-mono text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent-border focus:outline-none focus:ring-1 focus:ring-accent/20 transition-colors"
               />
               <button
                 onClick={handleSave}
@@ -268,7 +268,7 @@ export function WorkspaceDetailDrawer({ workspace, onClose, onUpdateMeta, onRemo
                   'mt-2.5 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
                   saved
                     ? 'bg-emerald-700/80 text-emerald-100'
-                    : 'bg-indigo-600/90 text-white hover:bg-indigo-600 disabled:opacity-50'
+                    : 'bg-accent/90 text-white hover:bg-accent disabled:opacity-50'
                 )}
               >
                 <Save size={13} />

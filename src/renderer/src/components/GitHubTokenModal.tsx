@@ -111,7 +111,7 @@ export function GitHubTokenModal({ onClose }: Props): JSX.Element {
               onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
               placeholder={t('githubToken.inputPlaceholder')}
               autoComplete="off"
-              className="w-full rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 font-mono text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition-colors"
+              className="w-full rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 font-mono text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent-border focus:outline-none focus:ring-1 focus:ring-accent/20 transition-colors"
             />
             <p className="text-[10px] text-ag-text-3">{t('githubToken.inputHelper')}</p>
           </div>
@@ -130,7 +130,7 @@ export function GitHubTokenModal({ onClose }: Props): JSX.Element {
                 'flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all',
                 saveState === 'saved'
                   ? 'bg-emerald-700/80 text-emerald-100'
-                  : 'bg-indigo-600/90 text-white hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed'
+                  : 'bg-accent/90 text-white hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed'
               ].join(' ')}
             >
               {saveState === 'saving' ? t('common.saving') : saveState === 'saved' ? t('common.saved') : t('githubToken.save')}
@@ -151,7 +151,7 @@ export function GitHubTokenModal({ onClose }: Props): JSX.Element {
             href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="flex items-center gap-1 text-[11px] text-accent hover:text-accent/80 transition-colors"
           >
             <ExternalLink size={11} />
             {t('githubToken.docsLink')}
