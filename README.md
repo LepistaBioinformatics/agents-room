@@ -45,7 +45,6 @@ Agents Room scans every agent's body and description, detects mentions of other 
 
 To browse and install skills from GitHub, Agents Room optionally uses a Personal Access Token for higher API rate limits. That token is stored using your OS's native credential store:
 
-- **macOS** → Keychain
 - **Windows** → DPAPI
 - **Linux** → libsecret (system keyring)
 
@@ -102,27 +101,12 @@ Go to the [Releases](https://github.com/LepistaBioinformatics/agents-room/releas
 | Platform | File | Notes |
 |----------|------|-------|
 | **Windows** | `Agents Room-x.y.z-setup.exe` | NSIS installer, x64 or arm64 |
-| **macOS** | `Agents Room-x.y.z.dmg` | Universal (x64 + Apple Silicon) |
 | **Linux** | `Agents Room-x.y.z.AppImage` | Run anywhere, no install needed |
 | **Linux** | `agents-room_x.y.z_amd64.deb` | Debian / Ubuntu |
 
 #### Windows
 
 Run the `.exe` installer. Windows Defender may show a SmartScreen prompt on first run — click **More info → Run anyway**. The app installs to `%LOCALAPPDATA%\Programs\Agents Room` and creates a Start Menu shortcut.
-
-#### macOS
-
-Open the `.dmg`, drag **Agents Room** to Applications. On first launch macOS may block it with a Gatekeeper warning. To allow it:
-
-```
-System Settings → Privacy & Security → Open Anyway
-```
-
-Or from Terminal:
-
-```bash
-xattr -cr /Applications/Agents\ Room.app
-```
 
 #### Linux (AppImage)
 
@@ -148,7 +132,6 @@ sudo dpkg -i agents-room_x.y.z_amd64.deb
 - **Node.js** 18 or later
 - **yarn** 1.22 or later
 - **Linux**: `rpmbuild` for `.rpm` target (`sudo apt install rpm` / `sudo dnf install rpm-build`)
-- **macOS**: Xcode Command Line Tools (`xcode-select --install`)
 - **Windows**: no extra tools needed
 
 #### Clone and install
@@ -171,9 +154,7 @@ yarn dev
 
 ```bash
 yarn build:linux   # AppImage + deb + rpm
-yarn build:mac     # DMG + ZIP
 yarn build:win     # NSIS installer
-yarn build:all     # all platforms (requires macOS for .icns generation)
 ```
 
 Artifacts go to `dist/`.
@@ -183,7 +164,7 @@ Artifacts go to `dist/`.
 yarn build:unpack
 ```
 
-> **Cross-compilation note:** Building a `.dmg` or `.icns` requires macOS. Building `.exe` from Linux/macOS requires Wine. For CI, build each platform on its native runner.
+> **Cross-compilation note:** Building `.exe` from Linux requires Wine. For CI, build each platform on its native runner.
 
 ---
 
