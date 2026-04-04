@@ -37,26 +37,6 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
 
-mac:
-  entitlementsInherit: build/entitlements.mac.plist
-  hardenedRuntime: true
-  gatekeeperAssess: false
-  target:
-    - target: dmg
-      arch:
-        - x64
-        - arm64
-    - target: zip
-      arch:
-        - x64
-        - arm64
-  extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-
-dmg:
-  artifactName: ${productName}-${version}.${ext}
-
 linux:
   target:
     - target: AppImage
