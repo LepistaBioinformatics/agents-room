@@ -89,6 +89,13 @@ export interface ElectronAPI {
     getMeta: (skillName: string) => Promise<SkillMeta | null>
     getAllMeta: () => Promise<SkillMeta[]>
   }
+  skillAuthoring: {
+    createSkill: (payload: { name: string; description: string; model: string; disableModelInvocation: boolean; body: string }) => Promise<{ success?: boolean; error?: string }>
+    updateSkill: (payload: { folderPath: string; description: string; model: string; disableModelInvocation: boolean; body: string }) => Promise<{ success?: boolean; error?: string }>
+    duplicateSkill: (payload: { sourceName: string }) => Promise<{ success?: boolean; destName?: string; error?: string }>
+    createCommand: (payload: { name: string; description: string; body: string; workspacePath: string }) => Promise<{ success?: boolean; error?: string }>
+    updateCommand: (payload: { filePath: string; body: string }) => Promise<{ success?: boolean; error?: string }>
+  }
 }
 
 const api: ElectronAPI = {
@@ -161,6 +168,13 @@ const api: ElectronAPI = {
     uninstall: (skillName) => ipcRenderer.invoke('skills:uninstall', skillName),
     getMeta: (skillName) => ipcRenderer.invoke('skills:get-meta', skillName),
     getAllMeta: () => ipcRenderer.invoke('skills:get-all-meta')
+  },
+  skillAuthoring: {
+    createSkill: (payload) => ipcRenderer.invoke('skill:create', payload),
+    updateSkill: (payload) => ipcRenderer.invoke('skill:update', payload),
+    duplicateSkill: (payload) => ipcRenderer.invoke('skill:duplicate', payload),
+    createCommand: (payload) => ipcRenderer.invoke('command:create', payload),
+    updateCommand: (payload) => ipcRenderer.invoke('command:update', payload)
   }
 }
 

@@ -10,6 +10,8 @@ import type { SearchIndexItem } from './SearchBar'
 import { AgentDetailDrawer } from './AgentDetailDrawer'
 import { SkillDetailDrawer } from './SkillDetailDrawer'
 import { CommandDetailDrawer } from './CommandDetailDrawer'
+import { CreateSkillDrawer } from './CreateSkillDrawer'
+import { CreateCommandDrawer } from './CreateCommandDrawer'
 import { WorkspaceDetailDrawer } from './WorkspaceDetailDrawer'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { TrashPanel } from './TrashPanel'
@@ -48,6 +50,10 @@ export function AgentsRoom({
   const [selectedAgent, setSelectedAgent] = useState<AgentView | null>(null)
   const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null)
   const [selectedCommand, setSelectedCommand] = useState<CommandItem | null>(null)
+  const [createSkillOpen, setCreateSkillOpen] = useState(false)
+  const [createSkillWorkspacePath, setCreateSkillWorkspacePath] = useState('')
+  const [createCommandOpen, setCreateCommandOpen] = useState(false)
+  const [createCommandDefaultWorkspacePath, setCreateCommandDefaultWorkspacePath] = useState<string | undefined>(undefined)
   const [activeTagFilters, setActiveTagFilters] = useState<Set<string>>(new Set())
   const [searchOpen, setSearchOpen] = useState(false)
   const [highlightedItemPath, setHighlightedItemPath] = useState<string | null>(null)
@@ -180,6 +186,16 @@ export function AgentsRoom({
     if (targetWs) onReloadWorkspace(targetWs.id)
   }, [workspaces, onReloadWorkspace])
 
+  const handleCreateSkill = useCallback((workspacePath: string) => {
+    setCreateSkillWorkspacePath(workspacePath)
+    setCreateSkillOpen(true)
+  }, [])
+
+  const handleCreateCommand = useCallback((workspacePath: string) => {
+    setCreateCommandDefaultWorkspacePath(workspacePath || undefined)
+    setCreateCommandOpen(true)
+  }, [])
+
   const handleOpenTrash = (): void => {
     loadTrash()
     setTrashOpen(true)
@@ -303,6 +319,8 @@ export function AgentsRoom({
             onTrash={handleTrash}
             onDuplicate={handleDuplicate}
             onCopy={handleCopy}
+            onCreateSkill={handleCreateSkill}
+            onCreateCommand={handleCreateCommand}
           />
         </div>
       </div>
@@ -317,11 +335,41 @@ export function AgentsRoom({
         skill={selectedSkill}
         onClose={() => setSelectedSkill(null)}
         onUninstalled={() => onReloadWorkspace('global')}
+        onEdited={() => onReloadWorkspace('global')}
+        onDuplicated={() => onReloadWorkspace('global')}
       />
 
       <CommandDetailDrawer
         command={selectedCommand}
         onClose={() => setSelectedCommand(null)}
+        onEdited={() => {
+          const wsId = selectedCommand?.workspacePath
+            ? workspaces.find((w) => w.path === selectedCommand.workspacePath)?.id ?? 'global'
+            : 'global'
+          onReloadWorkspace(wsId)
+        }}
+      />
+
+      <CreateSkillDrawer
+        open={createSkillOpen}
+        workspacePath={createSkillWorkspacePath}
+        onClose={() => setCreateSkillOpen(false)}
+        onCreated={() => onReloadWorkspace('global')}
+      />
+
+      <CreateCommandDrawer
+        open={createCommandOpen}
+        workspaces={workspaces}
+        defaultWorkspacePath={createCommandDefaultWorkspacePath}
+        onClose={() => setCreateCommandOpen(false)}
+        onCreated={(workspacePath) => {
+          if (!workspacePath) {
+            onReloadWorkspace('global')
+          } else {
+            const ws = workspaces.find((w) => w.path === workspacePath)
+            onReloadWorkspace(ws?.id ?? 'global')
+          }
+        }}
       />
 
       <WorkspaceDetailDrawer

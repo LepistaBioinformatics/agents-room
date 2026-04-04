@@ -1,7 +1,7 @@
 import { ipcMain, dialog, app } from 'electron'
 import { homedir } from 'os'
 import { join, extname } from 'path'
-import { mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync, readdirSync } from 'fs'
+import { mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync, readdirSync, cpSync } from 'fs'
 import { randomUUID } from 'crypto'
 import {
   loadAgentsForWorkspace,
@@ -435,6 +435,118 @@ export function registerIpcHandlers(): void {
       return { success: true }
     } catch (err: unknown) {
       return { error: err instanceof Error ? err.message : 'CREATE_FAILED' }
+    }
+  })
+
+  // ── Skill / command authoring ───────────────────────────────────────────────
+
+  ipcMain.handle('skill:create', (_event, payload: {
+    name: string; description: string; model: string; disableModelInvocation: boolean; body: string
+  }) => {
+    const { name, description, model, disableModelInvocation, body } = payload
+    const trimmedName = name.trim()
+    if (!trimmedName || /[/\\]/.test(trimmedName) || trimmedName.startsWith('.')) {
+      return { error: 'NAME_INVALID' }
+    }
+    const skillsDir = join(homedir(), '.claude', 'skills')
+    const destDir = join(skillsDir, trimmedName)
+    if (existsSync(destDir)) return { error: 'NAME_CONFLICT' }
+    try {
+      mkdirSync(destDir, { recursive: true })
+      const lines: string[] = ['---', `name: ${trimmedName}`]
+      if (description.trim()) lines.push(`description: ${description.trim()}`)
+      if (model.trim()) lines.push(`model: ${model.trim()}`)
+      if (disableModelInvocation) lines.push('disable-model-invocation: true')
+      lines.push('---')
+      const content = lines.join('\n') + '\n' + body
+      writeFileSync(join(destDir, 'SKILL.md'), content, 'utf-8')
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'WRITE_FAILED' }
+    }
+  })
+
+  ipcMain.handle('skill:update', (_event, payload: {
+    folderPath: string; description: string; model: string; disableModelInvocation: boolean; body: string
+  }) => {
+    const { folderPath, description, model, disableModelInvocation, body } = payload
+    const skillMdPath = join(folderPath, 'SKILL.md')
+    try {
+      // Read existing to preserve name
+      let existingName = folderPath.split('/').pop() ?? ''
+      if (existsSync(skillMdPath)) {
+        const raw = readFileSync(skillMdPath, 'utf-8')
+        const match = raw.match(/^name:\s*(.+)$/m)
+        if (match) existingName = match[1].trim()
+      }
+      const lines: string[] = ['---', `name: ${existingName}`]
+      if (description.trim()) lines.push(`description: ${description.trim()}`)
+      if (model.trim()) lines.push(`model: ${model.trim()}`)
+      if (disableModelInvocation) lines.push('disable-model-invocation: true')
+      lines.push('---')
+      const content = lines.join('\n') + '\n' + body
+      writeFileSync(skillMdPath, content, 'utf-8')
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'WRITE_FAILED' }
+    }
+  })
+
+  ipcMain.handle('skill:duplicate', (_event, payload: { sourceName: string }) => {
+    const { sourceName } = payload
+    const skillsDir = join(homedir(), '.claude', 'skills')
+    const srcDir = join(skillsDir, sourceName)
+    if (!existsSync(srcDir)) return { error: 'SOURCE_NOT_FOUND' }
+
+    // Find an available dest name: <sourceName>-copy, -copy-2, -copy-3, ...
+    let destName = `${sourceName}-copy`
+    let suffix = 2
+    while (existsSync(join(skillsDir, destName))) {
+      destName = `${sourceName}-copy-${suffix}`
+      suffix++
+    }
+    const destDir = join(skillsDir, destName)
+    try {
+      cpSync(srcDir, destDir, { recursive: true })
+      // Remove origin meta for the copy (it's now local) — handled by removing from store
+      removeSkillMeta(destName)
+      return { success: true, destName }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'COPY_FAILED' }
+    }
+  })
+
+  ipcMain.handle('command:create', (_event, payload: {
+    name: string; description: string; body: string; workspacePath: string
+  }) => {
+    const { name, description, body, workspacePath } = payload
+    const trimmedName = name.trim()
+    if (!trimmedName || /[/\\]/.test(trimmedName) || trimmedName.startsWith('.')) {
+      return { error: 'NAME_INVALID' }
+    }
+    const commandsDir = workspacePath
+      ? join(workspacePath, '.claude', 'commands')
+      : join(homedir(), '.claude', 'commands')
+    const filePath = join(commandsDir, `${trimmedName}.md`)
+    if (existsSync(filePath)) return { error: 'NAME_CONFLICT' }
+    try {
+      mkdirSync(commandsDir, { recursive: true })
+      writeFileSync(filePath, body, 'utf-8')
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'WRITE_FAILED' }
+    }
+  })
+
+  ipcMain.handle('command:update', (_event, payload: {
+    filePath: string; body: string
+  }) => {
+    const { filePath, body } = payload
+    try {
+      writeFileSync(filePath, body, 'utf-8')
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'WRITE_FAILED' }
     }
   })
 

@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTransformContext } from 'react-zoom-pan-pinch'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import type { WorkspaceEntry, WorkspaceItems, AgentView, SkillItem, CommandItem, TrashItemType } from '../types/agent'
 import { AgentCard } from './AgentCard'
 import { SkillCard } from './SkillCard'
@@ -26,6 +26,8 @@ interface Props {
   onCopy: (srcPath: string, targetPath: string, type: TrashItemType) => Promise<void>
   activeTagFilters: Set<string>
   highlightedItemPath: string | null
+  onCreateSkill?: () => void
+  onCreateCommand?: () => void
 }
 
 const CARD_W = 200
@@ -44,13 +46,23 @@ function CardGrid<T>({ items, renderCard }: { items: T[]; renderCard: (item: T) 
   )
 }
 
-function SubgroupLabel({ color, label, count }: { color: string; label: string; count: number }): JSX.Element {
+function SubgroupLabel({ color, label, count, onAdd }: { color: string; label: string; count: number; onAdd?: () => void }): JSX.Element {
   return (
     <div className={cn('flex items-center gap-2 mb-3', color)}>
       <div className="h-px flex-1 bg-current opacity-20" />
       <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">{label}</span>
       <span className="rounded-full bg-current/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums">{count}</span>
       <div className="h-px flex-1 bg-current opacity-20" />
+      {onAdd && (
+        <button
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onAdd() }}
+          className="flex items-center justify-center rounded-md p-0.5 opacity-60 transition-opacity hover:opacity-100 hover:bg-current/10"
+          title="New"
+        >
+          <Plus size={12} />
+        </button>
+      )}
     </div>
   )
 }
@@ -58,7 +70,7 @@ function SubgroupLabel({ color, label, count }: { color: string; label: string; 
 export function WorkspaceGroupBox({
   entry, items, loading, position, workspaces,
   selectedAgentKey, onSelectAgent, onSelectSkill, onSelectCommand, onPositionChange, activeTagFilters, highlightedItemPath,
-  onTrash, onDuplicate, onCopy
+  onTrash, onDuplicate, onCopy, onCreateSkill, onCreateCommand
 }: Props): JSX.Element | null {
   const { t } = useTranslation()
   const dragStart = useRef<{ mx: number; my: number; bx: number; by: number } | null>(null)
@@ -193,38 +205,42 @@ export function WorkspaceGroupBox({
             </div>
           )}
 
-          {items.skills.length > 0 && (
+          {(items.skills.length > 0 || onCreateSkill) && (
             <div>
-              <SubgroupLabel color="text-emerald-500" label={t('canvas.skills')} count={items.skills.length} />
-              <CardGrid items={items.skills} renderCard={(skill) => (
-                <SkillCard
-                  key={skill.folderPath}
-                  skill={skill}
-                  isSelected={false}
-                  isFlashing={highlightedItemPath === skill.folderPath}
-                  onOpen={() => onSelectSkill(skill)}
-                  onContextMenu={(e) => openContextMenu(e, skill.folderPath, 'skill', skill.name)}
-                />
-              )} />
+              <SubgroupLabel color="text-emerald-500" label={t('canvas.skills')} count={items.skills.length} onAdd={onCreateSkill} />
+              {items.skills.length > 0 && (
+                <CardGrid items={items.skills} renderCard={(skill) => (
+                  <SkillCard
+                    key={skill.folderPath}
+                    skill={skill}
+                    isSelected={false}
+                    isFlashing={highlightedItemPath === skill.folderPath}
+                    onOpen={() => onSelectSkill(skill)}
+                    onContextMenu={(e) => openContextMenu(e, skill.folderPath, 'skill', skill.name)}
+                  />
+                )} />
+              )}
             </div>
           )}
 
-          {items.commands.length > 0 && (
+          {(items.commands.length > 0 || onCreateCommand) && (
             <div>
-              <SubgroupLabel color="text-amber-500" label={t('canvas.commands')} count={items.commands.length} />
-              <CardGrid items={items.commands} renderCard={(cmd) => (
-                <CommandCard
-                  key={cmd.filePath}
-                  command={cmd}
-                  isFlashing={highlightedItemPath === cmd.filePath}
-                  onClick={() => onSelectCommand(cmd)}
-                  onContextMenu={(e) => openContextMenu(e, cmd.filePath, 'command', cmd.name)}
-                />
-              )} />
+              <SubgroupLabel color="text-amber-500" label={t('canvas.commands')} count={items.commands.length} onAdd={onCreateCommand} />
+              {items.commands.length > 0 && (
+                <CardGrid items={items.commands} renderCard={(cmd) => (
+                  <CommandCard
+                    key={cmd.filePath}
+                    command={cmd}
+                    isFlashing={highlightedItemPath === cmd.filePath}
+                    onClick={() => onSelectCommand(cmd)}
+                    onContextMenu={(e) => openContextMenu(e, cmd.filePath, 'command', cmd.name)}
+                  />
+                )} />
+              )}
             </div>
           )}
 
-          {totalCount === 0 && !loading && (
+          {totalCount === 0 && !loading && !onCreateSkill && !onCreateCommand && (
             <div className="py-8 text-center text-xs text-ag-text-3">
               {t('canvas.empty')}
             </div>

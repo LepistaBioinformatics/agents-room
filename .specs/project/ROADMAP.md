@@ -40,7 +40,7 @@
 | **Command detail view** | ✅ Done | Drawer with full .md content; body in CommandItem; wired via canvas |
 | **Tag filtering on canvas** | ✅ Done | Filter bar in sidebar; logic D (workspace OR agent tags); multi-select OR |
 | **Search global** | ✅ Done | Modal (Ctrl+K); agents/skills/commands; pan-to + card flash; keyboard nav |
-| Skill / command creation from UI | Planned | Create / edit SKILL.md or command .md |
+| Skill / command creation from UI | In Progress | Create + edit SKILL.md / command .md; duplicate-before-edit for installed skills; inline editor in detail drawers; "+" in GroupBox + sidebar |
 | **Trusted Sources Registry** | ✅ Done | Sources tab in Browse panel; userSources in store.json; sources:add/remove/update IPC; user-trusted tier (blue badge). |
 | **Permissions Editor** | ✅ Done | PermissionsEditor in workspace drawer; Allow/Ask/Deny editor; tool picker; defaultMode; additionalDirs; raw fallback. PERM-07/08 deferred. |
 | Migrate store to @surrealdb/node | Planned | Richer queries; requires electron-rebuild setup |

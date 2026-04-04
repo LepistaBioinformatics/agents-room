@@ -45,6 +45,7 @@
 | 2026-04-04 | Command Detail View implemented | `body` added to `CommandItem` + reader; `CommandDetailDrawer` mirrors SkillDetailDrawer; wired via AgentsCanvas → WorkspaceGroupBox |
 | 2026-04-04 | Tag filtering implemented | Filter bar in sidebar (below header); logic D — group visible if workspace.tags OR any agent.meta.tags match; multi-select OR; `highlightedItemPath` state for flash |
 | 2026-04-04 | Global search implemented | `SearchBar` modal (portal, Ctrl+K); searches agents/skills/commands by name, description, model, tools, tags; "Go to" pans canvas + flashes card with `card-flash` CSS keyframe; "Details" opens drawer; keyboard nav (↑↓, Enter, Esc) |
+| 2026-04-04 | Skill / command creation from UI (SCREATE-01..05) | 5 new IPC channels (`skill:create`, `skill:update`, `skill:duplicate`, `command:create`, `command:update`); `CreateSkillDrawer` + `CreateCommandDrawer`; edit mode in `SkillDetailDrawer` + `CommandDetailDrawer`; "Duplicate & Edit" for installed skills; "+" on Skills/Commands subgroup headers in GroupBox. v2 complete. |
 
 ## Blockers
 
@@ -61,7 +62,7 @@ _None._
 
 ## Todos
 
-- [ ] v2: Skill / command creation from UI (create SKILL.md or command .md)
+- [x] v2: Skill / command creation from UI — DONE (SCREATE-01..05)
 
 ## Deferred Ideas
 
