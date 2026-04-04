@@ -4,6 +4,25 @@ All notable changes to Agents Room are documented here.
 
 ---
 
+## [0.2.0] — 2026-04-04
+
+### Added
+
+- **Skill / command creation from UI** — create new skills (`~/.claude/skills/<name>/SKILL.md`) and commands (global or workspace-scoped) directly from the app, without touching the filesystem. "+" button on Skills and Commands subgroup headers in each group box.
+- **Inline skill editor** — edit description, model, disable-model-invocation toggle, and body inside the skill detail drawer. Name is read-only to prevent folder rename side effects.
+- **Inline command editor** — edit command body inside the command detail drawer.
+- **Duplicate & Edit for installed skills** — installed skills show "Duplicate & Edit" instead of Edit; creates `<name>-copy/` preserving the original and stripping origin metadata from the copy.
+- **Command detail view** — full `.md` content rendered as Markdown in a detail drawer; body field added to `CommandItem`.
+- **Tag filtering** — filter bar in the sidebar; groups visible if workspace tags or agent tags match; multi-select OR logic; highlighted card flash on match.
+- **Global search (Ctrl+K)** — modal search across all agents, skills, and commands by name, description, model, tools, and tags; "Go to" pans canvas and flashes the card; "Details" opens the drawer; full keyboard navigation (↑↓ Enter Esc).
+
+### Changed
+
+- Skills and Commands subgroup headers now always render (even when count is 0) when a workspace is active, so the "+" button is always accessible.
+- Unsaved-changes confirmation added to skill/command create and edit drawers.
+
+---
+
 ## [0.1.2] — 2026-04-04
 
 ### Changed
