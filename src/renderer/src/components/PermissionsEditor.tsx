@@ -156,7 +156,6 @@ export function PermissionsEditor({ files, workspacePath, onFilesReloaded }: Pro
           saveError={saveError}
           setSaveError={setSaveError}
           onFilesReloaded={onFilesReloaded}
-          createFile={createFile}
           t={t}
         />
       )}
@@ -173,7 +172,6 @@ interface FileEditorProps {
   saveError: string | null
   setSaveError: (e: string | null) => void
   onFilesReloaded: () => void
-  createFile: () => Promise<void>
   t: ReturnType<typeof useTranslation>['t']
 }
 
