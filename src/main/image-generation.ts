@@ -5,7 +5,7 @@
  * Model: imagen-3.0-generate-fast-001 (speed-optimised for interactive use)
  * Upgrade path: imagen-4.0-generate-001 for higher quality
  */
-import { GoogleGenAI } from '@google/genai'
+import { GoogleGenAI, ApiError } from '@google/genai'
 import { homedir } from 'os'
 import { mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
@@ -77,12 +77,23 @@ export async function generateImage(
 }
 
 function mapApiError(err: unknown): ImageGenerationError {
-  if (err instanceof Error) {
-    const msg = err.message.toLowerCase()
-    if (msg.includes('api_key') || msg.includes('api key') || msg.includes('401') || msg.includes('unauthenticated')) {
+  // Use SDK's structured ApiError when available
+  if (err instanceof ApiError) {
+    const status = (err as ApiError & { status?: number }).status
+    if (status === 401 || status === 403) {
       return new ImageGenerationError('INVALID_API_KEY', err.message)
     }
-    if (msg.includes('429') || msg.includes('quota') || msg.includes('rate')) {
+    if (status === 429) {
+      return new ImageGenerationError('RATE_LIMIT', err.message)
+    }
+  }
+  // Fallback string matching for unexpected error shapes
+  if (err instanceof Error) {
+    const msg = err.message.toLowerCase()
+    if (msg.includes('api_key') || msg.includes('api key') || msg.includes('401') || msg.includes('unauthenticated') || msg.includes('invalid key')) {
+      return new ImageGenerationError('INVALID_API_KEY', err.message)
+    }
+    if (msg.includes('429') || msg.includes('quota') || msg.includes('rate limit')) {
       return new ImageGenerationError('RATE_LIMIT', err.message)
     }
     if (msg.includes('fetch') || msg.includes('network') || msg.includes('enotfound') || msg.includes('econnreset')) {

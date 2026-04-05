@@ -610,6 +610,7 @@ export function registerIpcHandlers(): void {
       return { success: true, imagePath }
     } catch (err: unknown) {
       const code = err instanceof ImageGenerationError ? err.code : 'UNKNOWN'
+      console.error('[image-gen] error:', code, err instanceof Error ? err.message : err)
       return { success: false, error: code }
     }
   }
