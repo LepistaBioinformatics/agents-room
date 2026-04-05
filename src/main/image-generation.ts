@@ -1,9 +1,10 @@
 /**
- * Google Gemini Imagen API wrapper for avatar/background generation.
- * All API calls happen in the main process — the API key never reaches the renderer.
+ * Google Gemini image generation wrapper.
+ * Uses generateContent with responseModalities: ['IMAGE'] — works with any
+ * standard Gemini API key from AI Studio, no special Imagen access required.
  *
- * Model: imagen-3.0-generate-fast-001 (speed-optimised for interactive use)
- * Upgrade path: imagen-4.0-generate-001 for higher quality
+ * Model: gemini-2.0-flash-preview-image-generation
+ * All API calls happen in the main process — the API key never reaches the renderer.
  */
 import { GoogleGenAI, ApiError } from '@google/genai'
 import { homedir } from 'os'
@@ -13,8 +14,7 @@ import { randomUUID } from 'crypto'
 
 const AVATARS_DIR = join(homedir(), '.agents-room', 'avatars')
 
-// Use the fast model for interactive generation; switch to imagen-4.0-generate-001 for quality
-const IMAGEN_MODEL = 'imagen-3.0-generate-fast-001'
+const IMAGE_MODEL = 'gemini-2.0-flash-preview-image-generation'
 
 export type ImageGenErrorCode =
   | 'API_KEY_NOT_CONFIGURED'
@@ -35,7 +35,7 @@ export class ImageGenerationError extends Error {
 }
 
 /**
- * Generate an image via Gemini Imagen and save it to ~/.agents-room/avatars/.
+ * Generate an image via Gemini and save it to ~/.agents-room/avatars/.
  * @returns Absolute path to the saved PNG file.
  * @throws ImageGenerationError
  */
@@ -52,24 +52,31 @@ export async function generateImage(
 
   let response
   try {
-    response = await client.models.generateImages({
-      model: IMAGEN_MODEL,
-      prompt,
-      config: { numberOfImages: 1 }
+    response = await client.models.generateContent({
+      model: IMAGE_MODEL,
+      contents: prompt,
+      config: { responseModalities: ['IMAGE'] }
     })
   } catch (err: unknown) {
     throw mapApiError(err)
   }
 
-  const imageBytes = response.generatedImages?.[0]?.image?.imageBytes
+  // Find the first part with image data
+  const parts = response.candidates?.[0]?.content?.parts ?? []
+  const imagePart = parts.find((p) => p.inlineData?.mimeType?.startsWith('image/'))
+  const imageBytes = imagePart?.inlineData?.data
+
   if (!imageBytes) {
     throw new ImageGenerationError('EMPTY_RESPONSE', 'No image returned by API')
   }
 
-  // Save PNG to avatars directory
+  // Determine extension from mime type (default png)
+  const mime = imagePart?.inlineData?.mimeType ?? 'image/png'
+  const ext = mime.split('/')[1]?.replace('jpeg', 'jpg') ?? 'png'
+
   mkdirSync(AVATARS_DIR, { recursive: true })
   const suffix = type === 'background' ? '-bg' : ''
-  const filename = `${randomUUID()}${suffix}.png`
+  const filename = `${randomUUID()}${suffix}.${ext}`
   const destPath = join(AVATARS_DIR, filename)
   writeFileSync(destPath, Buffer.from(imageBytes, 'base64'))
 
@@ -77,7 +84,6 @@ export async function generateImage(
 }
 
 function mapApiError(err: unknown): ImageGenerationError {
-  // Use SDK's structured ApiError when available
   if (err instanceof ApiError) {
     const status = (err as ApiError & { status?: number }).status
     if (status === 401 || status === 403) {
@@ -87,7 +93,6 @@ function mapApiError(err: unknown): ImageGenerationError {
       return new ImageGenerationError('RATE_LIMIT', err.message)
     }
   }
-  // Fallback string matching for unexpected error shapes
   if (err instanceof Error) {
     const msg = err.message.toLowerCase()
     if (msg.includes('api_key') || msg.includes('api key') || msg.includes('401') || msg.includes('unauthenticated') || msg.includes('invalid key')) {
