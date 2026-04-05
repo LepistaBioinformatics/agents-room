@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { X, RefreshCw, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import type { UpdateStatus } from '../../../../preload/updater-types'
+import logoDark from '../assets/logo-dark.png'
+import logoLight from '../assets/logo-light.png'
 
 interface Props {
   onClose: () => void
@@ -41,12 +43,10 @@ export function AboutModal({ onClose }: Props): JSX.Element {
 
         {/* Header */}
         <div className="flex flex-col items-center gap-3 border-b border-ag-border px-6 py-8">
-          <div className="h-10 w-10 text-accent">
-            <svg viewBox="0 0 40 40" fill="none">
-              <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="3" />
-              <circle cx="20" cy="20" r="6" fill="currentColor" opacity="0.7" />
-            </svg>
-          </div>
+          <picture>
+            <source srcSet={logoDark} media="(prefers-color-scheme: dark)" />
+            <img src={logoLight} alt="Agents Room" className="h-14 w-auto" />
+          </picture>
           <div className="text-center">
             <h2 className="text-base font-bold uppercase tracking-widest text-ag-text-1">
               Agents Room

@@ -1,6 +1,8 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RefreshCw, Trash2, PanelLeftClose, PanelLeft, Loader2, Settings } from 'lucide-react'
+import logoDark from '../assets/logo-dark.png'
+import logoLight from '../assets/logo-light.png'
 import type { AgentView, AgentMeta, CanvasPosition, TrashItemType, SkillItem, CommandItem } from '../types/agent'
 import type { WorkspaceEntry, WorkspaceItems } from '../types/agent'
 import { AgentsCanvas } from './AgentsCanvas'
@@ -235,15 +237,10 @@ export function AgentsRoom({
 
           <div className="h-4 w-px bg-ag-border" />
 
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 text-accent">
-              <svg viewBox="0 0 16 16" fill="none">
-                <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
-                <circle cx="8" cy="8" r="2.5" fill="currentColor" opacity="0.7" />
-              </svg>
-            </div>
-            <span className="text-sm font-semibold text-ag-text-1">{t('nav.agentsRoom')}</span>
-          </div>
+          <picture>
+            <source srcSet={logoDark} media="(prefers-color-scheme: dark)" />
+            <img src={logoLight} alt="Agents Room" className="h-6 w-auto" />
+          </picture>
 
           <span className="rounded-full bg-ag-surface-2 px-2 py-0.5 text-[10px] text-ag-text-3 tabular-nums">
             {t('stats.workspaceCount', { count: workspaces.length })} · {t('stats.itemCount', { count: totalItems })}
