@@ -35,8 +35,10 @@ import { parseGitHubUrl, fetchRepoInfo, fetchSkillPreview, fetchDirectoryContent
 import { checkForUpdates, quitAndInstall } from './updater'
 import { TRUSTED_SOURCES, resolveTrustTier } from './skills-allowlist'
 import { installSkill, uninstallSkill } from './skills-installer'
-import { getSkillMeta, saveSkillMeta, removeSkillMeta, getAllSkillMeta, getGitHubToken, saveGitHubToken, clearGitHubToken, listUserSources, addUserSource, removeUserSource, updateUserSource } from './surreal-store'
+import { getSkillMeta, saveSkillMeta, removeSkillMeta, getAllSkillMeta, getGitHubToken, saveGitHubToken, clearGitHubToken, listUserSources, addUserSource, removeUserSource, updateUserSource, getSettings, updateSettings } from './surreal-store'
 import { cacheWrap, cacheDeletePrefix } from './github-cache'
+import { generateImage, ImageGenerationError } from './image-generation'
+import { generateAgent, generateSkill, generateCommand, AIGenerationError } from './ai-generation'
 
 export function registerIpcHandlers(): void {
   // Initialize GitHub token from store so API calls are authenticated from the start
@@ -544,6 +546,84 @@ export function registerIpcHandlers(): void {
     const { filePath, body } = payload
     try {
       writeFileSync(filePath, body, 'utf-8')
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'WRITE_FAILED' }
+    }
+  })
+
+  // ── AI-assisted generation ──────────────────────────────────────────────────
+
+  function wrapAIGenerate<T>(fn: () => Promise<T>) {
+    return fn().catch((err: unknown) => {
+      const code = err instanceof AIGenerationError ? err.code : 'UNKNOWN'
+      const message = err instanceof Error ? err.message : String(err)
+      return { error: code, message }
+    })
+  }
+
+  ipcMain.handle('ai:generate-agent',   (_e, p: { description: string }) => wrapAIGenerate(() => generateAgent(p)))
+  ipcMain.handle('ai:generate-skill',   (_e, p: { description: string }) => wrapAIGenerate(() => generateSkill(p)))
+  ipcMain.handle('ai:generate-command', (_e, p: { description: string }) => wrapAIGenerate(() => generateCommand(p)))
+
+  ipcMain.handle('agent:create', (_e, payload: {
+    name: string; description: string; model: string; tools: string[]; body: string; workspacePath: string
+  }) => {
+    const { name, description, model, tools, body, workspacePath } = payload
+    const trimmedName = name.trim()
+    if (!trimmedName || /[/\\]/.test(trimmedName) || trimmedName.startsWith('.')) {
+      return { error: 'NAME_INVALID' }
+    }
+    const agentsDir = workspacePath
+      ? join(workspacePath, '.claude', 'agents')
+      : join(homedir(), '.claude', 'agents')
+    const filePath = join(agentsDir, `${trimmedName}.md`)
+    if (existsSync(filePath)) return { error: 'NAME_CONFLICT' }
+    try {
+      mkdirSync(agentsDir, { recursive: true })
+      // Build YAML frontmatter + body
+      const toolsYaml = tools.length
+        ? `tools:\n${tools.map((t) => `  - ${t}`).join('\n')}\n`
+        : ''
+      const frontmatter = [
+        '---',
+        `name: ${trimmedName}`,
+        description ? `description: ${description}` : null,
+        model ? `model: ${model}` : null,
+        toolsYaml.trimEnd() || null,
+        '---'
+      ].filter(Boolean).join('\n')
+      writeFileSync(filePath, `${frontmatter}\n${body}`, 'utf-8')
+      return { success: true }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : 'WRITE_FAILED' }
+    }
+  })
+
+  // ── Image generation ────────────────────────────────────────────────────────
+
+  async function handleImageGenerate(type: 'avatar' | 'background', prompt: string) {
+    const { geminiApiKey } = getSettings()
+    if (!geminiApiKey) return { success: false, error: 'API_KEY_NOT_CONFIGURED' }
+    try {
+      const imagePath = await generateImage(prompt, type, geminiApiKey)
+      return { success: true, imagePath }
+    } catch (err: unknown) {
+      const code = err instanceof ImageGenerationError ? err.code : 'UNKNOWN'
+      return { success: false, error: code }
+    }
+  }
+
+  ipcMain.handle('image:generate-avatar',     (_e, { prompt }: { prompt: string }) => handleImageGenerate('avatar', prompt))
+  ipcMain.handle('image:generate-background', (_e, { prompt }: { prompt: string }) => handleImageGenerate('background', prompt))
+
+  // ── App settings ────────────────────────────────────────────────────────────
+
+  ipcMain.handle('app-settings:get', () => getSettings())
+
+  ipcMain.handle('app-settings:set', (_event, updates: Record<string, string | undefined>) => {
+    try {
+      updateSettings(updates)
       return { success: true }
     } catch (err: unknown) {
       return { error: err instanceof Error ? err.message : 'WRITE_FAILED' }

@@ -5,13 +5,13 @@ import useSWR from 'swr'
 import type { RemoteSkillCard, SkillPreview, SkillSource, GitHubRef } from '../types/agent'
 import { trustBadge } from '../lib/variants'
 import { cn } from '../lib/utils'
-import { GitHubTokenModal } from './GitHubTokenModal'
 
 const SWR_TTL = 15 * 60 * 1000 // 15 minutes — matches main-process cache TTL
 
 interface Props {
   onClose: () => void
   onInstalled: () => void
+  onOpenSettings?: () => void
 }
 
 function formatDate(iso: string): string {
@@ -22,7 +22,7 @@ function formatDate(iso: string): string {
   }
 }
 
-export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element {
+export function BrowseSkillsPanel({ onClose, onInstalled, onOpenSettings }: Props): JSX.Element {
   const { t } = useTranslation()
 
   function errorMessage(code: string, extra?: { resetAt?: string }): string {
@@ -54,8 +54,6 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
   const [sources, setSources] = useState<SkillSource[]>([])
   const [selectedSource, setSelectedSource] = useState<SkillSource | null>(null)
   const [skillInstallState, setSkillInstallState] = useState<Record<string, 'idle' | 'installing' | 'success' | 'conflict' | 'error'>>({})
-  const [showTokenModal, setShowTokenModal] = useState(false)
-
   // SWR for the source skill list — cached for 15 min, no focus/reconnect revalidation
   const { data: sourceData, isLoading: sourceLoading, error: sourceError } = useSWR(
     selectedSource ? `source:${selectedSource.id}` : null,
@@ -528,8 +526,6 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
 
   return (
     <>
-      {showTokenModal && <GitHubTokenModal onClose={() => setShowTokenModal(false)} />}
-
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50"
@@ -546,13 +542,15 @@ export function BrowseSkillsPanel({ onClose, onInstalled }: Props): JSX.Element 
         <div className="flex shrink-0 items-center justify-between border-b border-ag-border bg-ag-surface-2 px-6 py-5">
           <h2 className="text-sm font-semibold text-ag-text-1">{t('browse.title')}</h2>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => setShowTokenModal(true)}
-              title={t('githubToken.title')}
-              className="rounded-lg p-2 text-ag-text-3 transition-colors hover:bg-ag-surface hover:text-ag-text-2"
-            >
-              <KeyRound size={16} />
-            </button>
+            {onOpenSettings && (
+              <button
+                onClick={onOpenSettings}
+                title={t('githubToken.title')}
+                className="rounded-lg p-2 text-ag-text-3 transition-colors hover:bg-ag-surface hover:text-ag-text-2"
+              >
+                <KeyRound size={16} />
+              </button>
+            )}
             <button
               onClick={onClose}
               className="rounded-lg p-2 text-ag-text-3 transition-colors hover:bg-ag-surface hover:text-ag-text-2"

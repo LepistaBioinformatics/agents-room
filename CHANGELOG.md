@@ -4,6 +4,25 @@ All notable changes to Agents Room are documented here.
 
 ---
 
+## [0.3.0] — 2026-04-04
+
+### Added
+
+- **Agent image generation** — generate avatar portraits and card background images using Google Gemini Imagen (`imagen-3.0-generate-fast-001`) directly from the agent detail drawer. Generated images are saved to `~/.agents-room/avatars/` and displayed on the agent card with a dark overlay for readability.
+- **AI-assisted agent creation** — new "Create Agent" drawer with an AI toggle; describe what you want and Claude generates name, description, model, tools list, and system prompt body. Accessible via the "+" button on the Agents subgroup header in each group box.
+- **AI-assisted skill creation** — AI toggle in `CreateSkillDrawer`; generates name, description, model, and SKILL.md body from a description.
+- **AI-assisted command creation** — AI toggle in `CreateCommandDrawer`; generates name and command body from a description.
+- **AI badge** — generated fields show an "AI" badge next to their label; badge clears automatically when the field is manually edited.
+- **Settings drawer** — gear icon in the main toolbar opens a unified settings panel with three sections: Google Gemini API key (for image generation), Anthropic API key (for AI-assisted creation), and GitHub token (for skill install rate limits / private repos).
+- **Encrypted API key storage** — Gemini and Anthropic keys stored in `~/.agents-room/settings.json` using Electron `safeStorage` (`enc:<base64>` with `plain:` fallback). GitHub token was already encrypted; now all three keys use the same pattern.
+
+### Changed
+
+- **GitHub token configuration moved to Settings drawer** — previously in a standalone `GitHubTokenModal` reachable only from the Browse Skills panel. Now accessible from the main Settings drawer (gear icon). The KeyRound button in Browse Skills now opens Settings directly.
+- GitHub token and all API keys are now encrypted at rest via `safeStorage` — no plaintext secrets in any config file.
+
+---
+
 ## [0.2.0] — 2026-04-04
 
 ### Added

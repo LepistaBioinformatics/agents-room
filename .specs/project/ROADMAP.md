@@ -49,6 +49,8 @@
 
 | Feature | Status | Notes |
 |---|---|---|
+| **Agent image generation** | ✅ Done | Avatar + card background via Google Gemini Imagen (`@google/genai`); SettingsDrawer; ImageGenerationModal; cardBackground em AgentCard |
+| **AI-assisted creation** | ✅ Done | Agentes/skills/commands via Claude API; CreateAgentDrawer; AI toggle em CreateSkillDrawer + CreateCommandDrawer; chaves criptografadas via safeStorage |
 | Manual relationship overrides | Planned | Drag to link agents |
 | Agent dependency graph (DAG) | Planned | Dedicated DAG view |
 | "What agents use tool X?" queries | Planned | Needs @surrealdb/node |

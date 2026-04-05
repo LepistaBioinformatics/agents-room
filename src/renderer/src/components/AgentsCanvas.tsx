@@ -29,6 +29,7 @@ interface Props {
   onCopy: (srcPath: string, targetPath: string, type: TrashItemType) => Promise<void>
   onCreateSkill?: (workspacePath: string) => void
   onCreateCommand?: (workspacePath: string) => void
+  onCreateAgent?: (workspacePath: string) => void
 }
 
 const CANVAS_W = 6000
@@ -39,7 +40,7 @@ const PADDING = 80
 export const AgentsCanvas = forwardRef<AgentsCanvasHandle, Props>(function AgentsCanvas({
   loadedWorkspaces, workspaces, selectedAgentKey,
   onSelectAgent, onSelectSkill, onSelectCommand, onPositionChange, onTrash, onDuplicate, onCopy,
-  activeTagFilters, highlightedItemPath, onCreateSkill, onCreateCommand
+  activeTagFilters, highlightedItemPath, onCreateSkill, onCreateCommand, onCreateAgent
 }, ref) {
   const transformRef = useRef<ReactZoomPanPinchRef>(null)
   const didInitialCenter = useRef(false)
@@ -148,6 +149,7 @@ export const AgentsCanvas = forwardRef<AgentsCanvasHandle, Props>(function Agent
                   onCopy={onCopy}
                   onCreateSkill={onCreateSkill ? () => onCreateSkill(ws.entry.path) : undefined}
                   onCreateCommand={onCreateCommand ? () => onCreateCommand(ws.entry.path) : undefined}
+                  onCreateAgent={onCreateAgent ? () => onCreateAgent(ws.entry.path) : undefined}
                 />
               ))}
             </TransformComponent>

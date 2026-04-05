@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { AgentView } from '../types/agent'
 import { cn, truncate, getInitials } from '../lib/utils'
@@ -31,6 +32,18 @@ function modelBadgeClass(model: string | null): string {
 
 export function AgentCard({ agent, isSelected, isFlashing, onOpen, onContextMenu, style }: Props): JSX.Element {
   const { t } = useTranslation()
+  const [bgDataUrl, setBgDataUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    const bgPath = agent.meta?.cardBackground
+    if (!bgPath) { setBgDataUrl(null); return }
+    let cancelled = false
+    window.electronAPI.avatar.read(bgPath).then((url) => {
+      if (!cancelled) setBgDataUrl(url)
+    }).catch(() => { /* silent fallback */ })
+    return () => { cancelled = true }
+  }, [agent.meta?.cardBackground])
+
   const visibleTools = agent.tools.slice(0, 4)
   const extraTools = agent.tools.length - visibleTools.length
   const desc = truncate(agent.description.replace(/^\p{Emoji_Presentation}+\s*/u, ''), 100)
@@ -39,15 +52,21 @@ export function AgentCard({ agent, isSelected, isFlashing, onOpen, onContextMenu
   return (
     <div
       onContextMenu={onContextMenu}
-      style={style}
+      style={{
+        ...style,
+        ...(bgDataUrl ? { backgroundImage: `url(${bgDataUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {})
+      }}
       className={cn(
         cardShell({ kind: 'agent', selected: isSelected as CardShellProps['selected'] }),
         'group overflow-hidden',
         isFlashing && 'card-flash'
       )}
     >
+      {/* Background overlay for legibility */}
+      {bgDataUrl && <div className="absolute inset-0 bg-black/60 z-0" />}
+
       {/* Portrait */}
-      <div className="relative h-16 shrink-0 overflow-hidden">
+      <div className="relative h-16 shrink-0 overflow-hidden z-10">
         {agent.meta?.avatarPath ? (
           <AvatarImg
             path={agent.meta.avatarPath}
@@ -68,7 +87,7 @@ export function AgentCard({ agent, isSelected, isFlashing, onOpen, onContextMenu
       </div>
 
       {/* Identity + content */}
-      <div className="flex flex-col gap-2 p-3">
+      <div className="relative z-10 flex flex-col gap-2 p-3">
         {/* Name + model */}
         <div>
           <div className="text-[13px] font-bold uppercase leading-tight text-ag-text-1">{agent.name}</div>

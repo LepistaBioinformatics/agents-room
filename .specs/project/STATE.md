@@ -40,12 +40,21 @@
 | 2026-04-04 | typeBadge: `text-[11px] font-medium` | Was `text-[10px] font-semibold`. Now follows brand guide label spec (11px / 500 / 0.02em tracking). |
 | 2026-04-04 | `docs/brand/` created | Full brand guide in `docs/brand/`: BRAND.md, colors.md, typography.md, voice.md, iconography.md, logo.md, marketing.md + tokens/brand.config.ts + tokens/tailwind.preset.ts. |
 
+| 2026-04-04 | Gemini image gen: use `@google/genai` (not deprecated `@google/generative-ai`) | `@google/generative-ai` is deprecated, doesn't support image generation. New SDK: `@google/genai` v1.x. API: `client.models.generateImages({ model, prompt })`. Response: `generatedImages[0].image.imageBytes` (base64 PNG). Model: `imagen-3.0-generate-fast-001`. |
+| 2026-04-04 | Settings IPC namespace: `app-settings:get/set` | Avoids collision with existing `settings:*` namespace (file write, GitHub token). Preload: `window.electronAPI.appSettings.get/set`. |
+| 2026-04-04 | API keys in settings.json encrypted via safeStorage | Same `enc:`/`plain:` prefix pattern as GitHub token. `updateSettings` always encrypts on write; `getSettings` always decrypts on read — callers see plaintext. Legacy plaintext without prefix preserved on read. |
 | 2026-04-04 | Skills Install feature complete (P1+P2) | Browse panel from hardcoded trusted allowlist; install from any GitHub URL; 3-tier trust model (Trusted/Known/Unknown); origin metadata in `store.json` under `skillMeta`; installed-state detection in browse panel; uninstall from detail drawer. Allowlist is hardcoded — updated via app releases only. |
 | 2026-04-04 | Permissions Editor implemented (P1+P2) | PermissionsEditor component in WorkspaceDetailDrawer; structured Allow/Ask/Deny editor; tool picker with context-aware inputs; defaultMode dropdown; additionalDirectories; raw JSON fallback |
 | 2026-04-04 | Command Detail View implemented | `body` added to `CommandItem` + reader; `CommandDetailDrawer` mirrors SkillDetailDrawer; wired via AgentsCanvas → WorkspaceGroupBox |
 | 2026-04-04 | Tag filtering implemented | Filter bar in sidebar (below header); logic D — group visible if workspace.tags OR any agent.meta.tags match; multi-select OR; `highlightedItemPath` state for flash |
 | 2026-04-04 | Global search implemented | `SearchBar` modal (portal, Ctrl+K); searches agents/skills/commands by name, description, model, tools, tags; "Go to" pans canvas + flashes card with `card-flash` CSS keyframe; "Details" opens drawer; keyboard nav (↑↓, Enter, Esc) |
 | 2026-04-04 | Skill / command creation from UI (SCREATE-01..05) | 5 new IPC channels (`skill:create`, `skill:update`, `skill:duplicate`, `command:create`, `command:update`); `CreateSkillDrawer` + `CreateCommandDrawer`; edit mode in `SkillDetailDrawer` + `CommandDetailDrawer`; "Duplicate & Edit" for installed skills; "+" on Skills/Commands subgroup headers in GroupBox. v2 complete. |
+
+| 2026-04-04 | Agent image generation via `@google/genai` | `image-generation.ts` in main; `ImageGenerationModal` (portal); avatar + card background modes; auto-prompt from agent metadata; PNG saved to `~/.agents-room/avatars/`; `cardBackground` path in `AgentMeta` + `store.json`; overlay div on `AgentCard` for readability. |
+| 2026-04-04 | AI-assisted creation via `@anthropic-ai/sdk` | `ai-generation.ts` in main; `generateAgent/generateSkill/generateCommand()` → JSON-only system prompt → `claude-sonnet-4-6`; `CreateAgentDrawer` (new); AI toggle in `CreateSkillDrawer` + `CreateCommandDrawer`; `AiBadge` per field, clears on edit; `agent:create` IPC writes YAML frontmatter + body to workspace `.claude/agents/`. |
+| 2026-04-04 | GitHub token moved to SettingsDrawer; GitHubTokenModal deleted | Single entry point for all API keys/tokens. KeyRound button in BrowseSkillsPanel now calls `onOpenSettings()` → closes panel + opens Settings. `getGitHubToken()` IPC returns `{ configured, masked }` — masked value displayed, not the raw token. |
+| 2026-04-04 | All API keys encrypted via safeStorage | Gemini + Anthropic in `settings.json`; GitHub token in `store.json`. All use `enc:<base64>` / `plain:` prefix. `getSettings()` / `updateSettings()` always decrypt/encrypt transparently — callers see plaintext. |
+| 2026-04-04 | `app-settings:get/set` IPC namespace | Avoids collision with existing `settings:*` namespace (file write, GitHub token ops). Preload: `window.electronAPI.appSettings.get/set`. |
 
 ## Blockers
 
@@ -59,10 +68,15 @@ _None._
 - `overflow-y-auto` on a container creates a new stacking context that clips `absolute` children AND blocks pointer events outside its bounds. Any popup (emoji picker, dropdown) inside an overflowed list must be portaled.
 - Electron's `file://` protocol is blocked for paths outside the app directory in the renderer, even with `contextIsolation: true`. Custom `protocol.handle` works in production but can be blocked by CSP from the Vite dev server. Most reliable approach: read files in main process, return as base64 data URLs over IPC.
 - Store paths stored as absolute become non-portable. Using `~/` prefix at write time and resolving at read time keeps the JSON human-readable and portable across users/machines.
+- `@google/generative-ai` is the deprecated SDK — it only supports `generateContent` (text). Image generation requires the new `@google/genai` v1.x SDK with `client.models.generateImages()`. Response shape: `generatedImages[0].image.imageBytes` (base64 PNG).
+- `getGitHubToken()` IPC returns `{ configured: boolean, masked: string | null }`, not the raw token — display the masked value directly; never expose the plaintext in the renderer.
 
 ## Todos
 
 - [x] v2: Skill / command creation from UI — DONE (SCREATE-01..05)
+- [x] v3: Agent image generation — DONE (T1..T8 implemented)
+- [x] v3: AI-assisted creation — DONE (T1..T7 implemented)
+- [x] v3: GitHub token moved to SettingsDrawer — DONE
 
 ## Deferred Ideas
 

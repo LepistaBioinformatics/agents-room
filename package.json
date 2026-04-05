@@ -26,8 +26,10 @@
   "license": "MIT",
   "packageManager": "yarn@1.22.22",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",
+    "@google/genai": "^1.48.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "electron-updater": "^6.8.3",

@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RefreshCw, Trash2, PanelLeftClose, PanelLeft, Loader2 } from 'lucide-react'
+import { RefreshCw, Trash2, PanelLeftClose, PanelLeft, Loader2, Settings } from 'lucide-react'
 import type { AgentView, AgentMeta, CanvasPosition, TrashItemType, SkillItem, CommandItem } from '../types/agent'
 import type { WorkspaceEntry, WorkspaceItems } from '../types/agent'
 import { AgentsCanvas } from './AgentsCanvas'
@@ -12,11 +12,13 @@ import { SkillDetailDrawer } from './SkillDetailDrawer'
 import { CommandDetailDrawer } from './CommandDetailDrawer'
 import { CreateSkillDrawer } from './CreateSkillDrawer'
 import { CreateCommandDrawer } from './CreateCommandDrawer'
+import { CreateAgentDrawer } from './CreateAgentDrawer'
 import { WorkspaceDetailDrawer } from './WorkspaceDetailDrawer'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { TrashPanel } from './TrashPanel'
 import { BrowseSkillsPanel } from './BrowseSkillsPanel'
 import { AboutModal } from './AboutModal'
+import { SettingsDrawer } from './SettingsDrawer'
 import { useTrash } from '../hooks/useTrash'
 import { cn } from '../lib/utils'
 
@@ -54,6 +56,8 @@ export function AgentsRoom({
   const [createSkillWorkspacePath, setCreateSkillWorkspacePath] = useState('')
   const [createCommandOpen, setCreateCommandOpen] = useState(false)
   const [createCommandDefaultWorkspacePath, setCreateCommandDefaultWorkspacePath] = useState<string | undefined>(undefined)
+  const [createAgentOpen, setCreateAgentOpen] = useState(false)
+  const [createAgentDefaultWorkspacePath, setCreateAgentDefaultWorkspacePath] = useState<string | undefined>(undefined)
   const [activeTagFilters, setActiveTagFilters] = useState<Set<string>>(new Set())
   const [searchOpen, setSearchOpen] = useState(false)
   const [highlightedItemPath, setHighlightedItemPath] = useState<string | null>(null)
@@ -152,6 +156,7 @@ export function AgentsRoom({
   const [globalLoading, setGlobalLoading] = useState(false)
   const [browsePanelOpen, setBrowsePanelOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const reloadWorkspaceByPath = useCallback((workspacePath: string) => {
     const ws = workspaces.find((w) => w.path === workspacePath)
@@ -194,6 +199,11 @@ export function AgentsRoom({
   const handleCreateCommand = useCallback((workspacePath: string) => {
     setCreateCommandDefaultWorkspacePath(workspacePath || undefined)
     setCreateCommandOpen(true)
+  }, [])
+
+  const handleCreateAgent = useCallback((workspacePath: string) => {
+    setCreateAgentDefaultWorkspacePath(workspacePath || undefined)
+    setCreateAgentOpen(true)
   }, [])
 
   const handleOpenTrash = (): void => {
@@ -252,6 +262,13 @@ export function AgentsRoom({
         />
 
         <div className="flex items-center gap-1">
+          <button
+            onClick={() => setSettingsOpen(true)}
+            title="Settings"
+            className="rounded-lg p-1.5 text-ag-text-3 transition-colors hover:bg-ag-surface-2 hover:text-ag-text-2"
+          >
+            <Settings size={14} />
+          </button>
           <button
             onClick={handleReload}
             disabled={globalLoading}
@@ -321,6 +338,7 @@ export function AgentsRoom({
             onCopy={handleCopy}
             onCreateSkill={handleCreateSkill}
             onCreateCommand={handleCreateCommand}
+            onCreateAgent={handleCreateAgent}
           />
         </div>
       </div>
@@ -329,6 +347,7 @@ export function AgentsRoom({
         agent={selectedAgent}
         onClose={() => setSelectedAgent(null)}
         onSaveMeta={onSaveAgentMeta}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       <SkillDetailDrawer
@@ -347,6 +366,18 @@ export function AgentsRoom({
             ? workspaces.find((w) => w.path === selectedCommand.workspacePath)?.id ?? 'global'
             : 'global'
           onReloadWorkspace(wsId)
+        }}
+      />
+
+      <CreateAgentDrawer
+        open={createAgentOpen}
+        workspaces={workspaces}
+        defaultWorkspacePath={createAgentDefaultWorkspacePath}
+        onClose={() => setCreateAgentOpen(false)}
+        onCreated={(workspacePath) => {
+          setCreateAgentOpen(false)
+          const ws = workspaces.find((w) => w.path === workspacePath)
+          onReloadWorkspace(ws?.id ?? 'global')
         }}
       />
 
@@ -392,10 +423,13 @@ export function AgentsRoom({
         <BrowseSkillsPanel
           onClose={() => setBrowsePanelOpen(false)}
           onInstalled={() => onReloadWorkspace('global')}
+          onOpenSettings={() => { setBrowsePanelOpen(false); setSettingsOpen(true) }}
         />
       )}
 
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+
+      {settingsOpen && <SettingsDrawer onClose={() => setSettingsOpen(false)} />}
     </div>
   )
 }

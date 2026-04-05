@@ -11,7 +11,8 @@ import type {
   RemoteSkillCard,
   SkillSource,
   SkillPreview,
-  SourceTier
+  SourceTier,
+  AppSettings
 } from '../renderer/src/types/agent'
 import type { UpdateStatus } from './updater-types'
 
@@ -95,6 +96,18 @@ export interface ElectronAPI {
     duplicateSkill: (payload: { sourceName: string }) => Promise<{ success?: boolean; destName?: string; error?: string }>
     createCommand: (payload: { name: string; description: string; body: string; workspacePath: string }) => Promise<{ success?: boolean; error?: string }>
     updateCommand: (payload: { filePath: string; body: string }) => Promise<{ success?: boolean; error?: string }>
+    generateAgent:   (payload: { description: string }) => Promise<{ name?: string; description?: string; model?: string; tools?: string[]; body?: string; error?: string; message?: string }>
+    generateSkill:   (payload: { description: string }) => Promise<{ name?: string; description?: string; model?: string; body?: string; error?: string; message?: string }>
+    generateCommand: (payload: { description: string }) => Promise<{ name?: string; body?: string; error?: string; message?: string }>
+    createAgent: (payload: { name: string; description: string; model: string; tools: string[]; body: string; workspacePath: string }) => Promise<{ success?: boolean; error?: string }>
+  }
+  appSettings: {
+    get: () => Promise<AppSettings>
+    set: (updates: Partial<AppSettings>) => Promise<{ success?: boolean; error?: string }>
+  }
+  image: {
+    generateAvatar:     (payload: { prompt: string }) => Promise<{ success: boolean; imagePath?: string; error?: string }>
+    generateBackground: (payload: { prompt: string }) => Promise<{ success: boolean; imagePath?: string; error?: string }>
   }
 }
 
@@ -174,7 +187,19 @@ const api: ElectronAPI = {
     updateSkill: (payload) => ipcRenderer.invoke('skill:update', payload),
     duplicateSkill: (payload) => ipcRenderer.invoke('skill:duplicate', payload),
     createCommand: (payload) => ipcRenderer.invoke('command:create', payload),
-    updateCommand: (payload) => ipcRenderer.invoke('command:update', payload)
+    updateCommand: (payload) => ipcRenderer.invoke('command:update', payload),
+    generateAgent:   (payload) => ipcRenderer.invoke('ai:generate-agent', payload),
+    generateSkill:   (payload) => ipcRenderer.invoke('ai:generate-skill', payload),
+    generateCommand: (payload) => ipcRenderer.invoke('ai:generate-command', payload),
+    createAgent: (payload) => ipcRenderer.invoke('agent:create', payload)
+  },
+  appSettings: {
+    get: () => ipcRenderer.invoke('app-settings:get'),
+    set: (updates) => ipcRenderer.invoke('app-settings:set', updates)
+  },
+  image: {
+    generateAvatar:     (payload) => ipcRenderer.invoke('image:generate-avatar', payload),
+    generateBackground: (payload) => ipcRenderer.invoke('image:generate-background', payload)
   }
 }
 

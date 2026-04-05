@@ -22,6 +22,7 @@ export interface AgentMeta {
   notes: string
   tags: string[]
   avatarPath?: string
+  cardBackground?: string
   updatedAt: string
 }
 
@@ -137,6 +138,13 @@ export interface WorkspaceItems {
   agents: AgentView[]
   skills: SkillItem[]
   commands: CommandItem[]
+}
+
+// ── App settings ─────────────────────────────────────────────────────────────
+
+export interface AppSettings {
+  geminiApiKey?: string
+  anthropicApiKey?: string
 }
 
 // ── Trash ─────────────────────────────────────────────────────────────────────

@@ -1,16 +1,18 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X, Save, FileText, Wrench, GitBranch, Database, StickyNote, Tag, Camera } from 'lucide-react'
+import { X, Save, FileText, Wrench, GitBranch, Database, StickyNote, Tag, Camera, Wand2, ImageOff } from 'lucide-react'
 import { AgentView, AgentMeta } from '../types/agent'
 import { cn, getInitials } from '../lib/utils'
 import { AvatarImg } from './AvatarImg'
 import { typeBadge } from '../lib/variants'
 import { DrawerShell, SectionBlock, InfoTable, MarkdownContent } from './ui'
+import { ImageGenerationModal } from './ImageGenerationModal'
 
 interface Props {
   agent: AgentView | null
   onClose: () => void
   onSaveMeta: (agentName: string, sourcePath: string, meta: Partial<AgentMeta>) => Promise<void>
+  onOpenSettings?: () => void
 }
 
 const MODEL_LABEL: Record<string, string> = {
@@ -26,28 +28,41 @@ function modelLabel(model: string | null): string {
 }
 
 
-export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.Element | null {
+export function AgentDetailDrawer({ agent, onClose, onSaveMeta, onOpenSettings }: Props): JSX.Element | null {
   const { t } = useTranslation()
   const [notes, setNotes] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [avatarPath, setAvatarPath] = useState<string | undefined>(undefined)
+  const [cardBackground, setCardBackground] = useState<string | undefined>(undefined)
+  const [bgPreviewUrl, setBgPreviewUrl] = useState<string | null>(null)
   const [tagInput, setTagInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false)
+  const [bgModalOpen, setBgModalOpen] = useState(false)
 
   // Keep a ref so callbacks always see the latest values without re-creating
-  const latestRef = { notes, tags, avatarPath }
+  const latestRef = { notes, tags, avatarPath, cardBackground }
 
   useEffect(() => {
     if (!agent) return
     setNotes(agent.meta?.notes ?? '')
     setTags(agent.meta?.tags ?? [])
     setAvatarPath(agent.meta?.avatarPath)
+    setCardBackground(agent.meta?.cardBackground)
     setSaved(false)
     setTagInput('')
+    setAvatarModalOpen(false)
+    setBgModalOpen(false)
   }, [agent])
 
-  const save = useCallback(async (patch: Partial<{ notes: string; tags: string[]; avatarPath: string | undefined }>) => {
+  // Load background preview when cardBackground changes
+  useEffect(() => {
+    if (!cardBackground) { setBgPreviewUrl(null); return }
+    window.electronAPI.avatar.read(cardBackground).then(setBgPreviewUrl)
+  }, [cardBackground])
+
+  const save = useCallback(async (patch: Partial<{ notes: string; tags: string[]; avatarPath: string | undefined; cardBackground: string | undefined }>) => {
     if (!agent) return
     const merged = { ...latestRef, ...patch }
     setSaving(true)
@@ -134,6 +149,15 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
               </span>
             </div>
           </div>
+        </button>
+
+        {/* Generate avatar with AI */}
+        <button
+          onClick={() => setAvatarModalOpen(true)}
+          className="flex w-full items-center justify-center gap-1.5 border-t border-ag-border bg-ag-surface-2/60 py-1.5 text-[11px] font-medium text-ag-text-3 transition-colors hover:bg-ag-surface-2 hover:text-accent"
+        >
+          <Wand2 size={12} />
+          Generate avatar with AI
         </button>
 
         {/* Identity below portrait */}
@@ -274,6 +298,36 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
           </SectionBlock>
         )}
 
+        {/* Card Background */}
+        <SectionBlock
+          icon={<Wand2 size={13} />}
+          label="Card Background"
+        >
+          {bgPreviewUrl && (
+            <div className="mb-3 overflow-hidden rounded-lg border border-ag-border">
+              <img src={bgPreviewUrl} alt="Card background preview" className="h-24 w-full object-cover" />
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setBgModalOpen(true)}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-xs font-medium text-ag-text-2 transition-colors hover:border-accent-border hover:text-accent"
+            >
+              <Wand2 size={12} />
+              {cardBackground ? 'Regenerate background' : 'Generate with AI'}
+            </button>
+            {cardBackground && (
+              <button
+                onClick={() => { setCardBackground(undefined); void save({ cardBackground: undefined }) }}
+                className="flex items-center gap-1 rounded-lg border border-red-800/40 px-3 py-2 text-xs font-medium text-red-400 transition-colors hover:bg-red-900/20"
+              >
+                <ImageOff size={12} />
+                Remove
+              </button>
+            )}
+          </div>
+        </SectionBlock>
+
         {/* Notes */}
         <SectionBlock
           icon={<StickyNote size={13} />}
@@ -303,6 +357,38 @@ export function AgentDetailDrawer({ agent, onClose, onSaveMeta }: Props): JSX.El
           </button>
         </SectionBlock>
       </div>
+
+      {avatarModalOpen && (
+        <ImageGenerationModal
+          agentName={agent.name}
+          agentDescription={agent.description || undefined}
+          agentTools={agent.tools}
+          type="avatar"
+          onClose={() => setAvatarModalOpen(false)}
+          onConfirm={(path) => {
+            setAvatarPath(path)
+            void save({ avatarPath: path })
+            setAvatarModalOpen(false)
+          }}
+          onOpenSettings={onOpenSettings}
+        />
+      )}
+
+      {bgModalOpen && (
+        <ImageGenerationModal
+          agentName={agent.name}
+          agentDescription={agent.description || undefined}
+          agentTools={agent.tools}
+          type="background"
+          onClose={() => setBgModalOpen(false)}
+          onConfirm={(path) => {
+            setCardBackground(path)
+            void save({ cardBackground: path })
+            setBgModalOpen(false)
+          }}
+          onOpenSettings={onOpenSettings}
+        />
+      )}
     </DrawerShell>
   )
 }

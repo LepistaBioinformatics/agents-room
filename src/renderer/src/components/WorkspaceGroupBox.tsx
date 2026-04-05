@@ -28,6 +28,7 @@ interface Props {
   highlightedItemPath: string | null
   onCreateSkill?: () => void
   onCreateCommand?: () => void
+  onCreateAgent?: () => void
 }
 
 const CARD_W = 200
@@ -70,7 +71,7 @@ function SubgroupLabel({ color, label, count, onAdd }: { color: string; label: s
 export function WorkspaceGroupBox({
   entry, items, loading, position, workspaces,
   selectedAgentKey, onSelectAgent, onSelectSkill, onSelectCommand, onPositionChange, activeTagFilters, highlightedItemPath,
-  onTrash, onDuplicate, onCopy, onCreateSkill, onCreateCommand
+  onTrash, onDuplicate, onCopy, onCreateSkill, onCreateCommand, onCreateAgent
 }: Props): JSX.Element | null {
   const { t } = useTranslation()
   const dragStart = useRef<{ mx: number; my: number; bx: number; by: number } | null>(null)
@@ -189,10 +190,10 @@ export function WorkspaceGroupBox({
 
         {/* Content */}
         <div className="p-5 space-y-6">
-          {items.agents.length > 0 && (
+          {(items.agents.length > 0 || onCreateAgent) && (
             <div>
-              <SubgroupLabel color="text-accent" label={t('canvas.agents')} count={items.agents.length} />
-              <CardGrid items={items.agents} renderCard={(agent) => (
+              <SubgroupLabel color="text-accent" label={t('canvas.agents')} count={items.agents.length} onAdd={onCreateAgent} />
+              {items.agents.length > 0 && <CardGrid items={items.agents} renderCard={(agent) => (
                 <AgentCard
                   key={`${agent.name}::${agent.filePath}`}
                   agent={agent}
@@ -201,7 +202,7 @@ export function WorkspaceGroupBox({
                   onOpen={() => onSelectAgent(agent)}
                   onContextMenu={(e) => openContextMenu(e, agent.filePath, 'agent', agent.name)}
                 />
-              )} />
+              )} />}
             </div>
           )}
 
@@ -240,7 +241,7 @@ export function WorkspaceGroupBox({
             </div>
           )}
 
-          {totalCount === 0 && !loading && !onCreateSkill && !onCreateCommand && (
+          {totalCount === 0 && !loading && !onCreateSkill && !onCreateCommand && !onCreateAgent && (
             <div className="py-8 text-center text-xs text-ag-text-3">
               {t('canvas.empty')}
             </div>

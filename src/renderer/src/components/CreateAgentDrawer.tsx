@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { X, Wand2, Loader2 } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import type { WorkspaceEntry } from '../types/agent'
 import { DrawerShell } from './ui'
 import { mapAIError } from '../lib/ai-error'
@@ -25,11 +24,12 @@ function isDirty(name: string, description: string, body: string): boolean {
   return !!(name || description || body)
 }
 
-export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, onClose, onCreated }: Props): JSX.Element | null {
-  const { t } = useTranslation()
+export function CreateAgentDrawer({ workspaces, defaultWorkspacePath, open, onClose, onCreated }: Props): JSX.Element | null {
   const [selectedWorkspacePath, setSelectedWorkspacePath] = useState<string>('')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [model, setModel] = useState('claude-sonnet-4-6')
+  const [toolsInput, setToolsInput] = useState('')  // comma-separated
   const [body, setBody] = useState('')
   const [nameError, setNameError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -40,7 +40,7 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
   const [aiError, setAiError] = useState('')
   const [generatedFields, setGeneratedFields] = useState(new Set<string>())
 
-  // Sync default when drawer opens
+  // Sync default workspace when drawer opens
   useEffect(() => {
     if (open) {
       setSelectedWorkspacePath(defaultWorkspacePath ?? '')
@@ -52,6 +52,8 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
   const reset = (): void => {
     setName('')
     setDescription('')
+    setModel('claude-sonnet-4-6')
+    setToolsInput('')
     setBody('')
     setNameError('')
     setUseAI(false)
@@ -60,16 +62,33 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
     setGeneratedFields(new Set())
   }
 
+  const handleClose = (): void => {
+    if (isDirty(name, description, body)) {
+      if (!window.confirm('Discard unsaved changes?')) return
+    }
+    reset()
+    onClose()
+  }
+
   const handleGenerate = async (): Promise<void> => {
     if (!aiDesc.trim()) return
     setGenerating(true)
     setAiError('')
     try {
-      const result = await window.electronAPI.skillAuthoring.generateCommand({ description: aiDesc.trim() })
+      const result = await window.electronAPI.skillAuthoring.generateAgent({ description: aiDesc.trim() })
       if (result.error) { setAiError(mapAIError(result.error)); return }
-      if (result.name) { setName(result.name) }
-      if (result.body) { setBody(result.body) }
-      setGeneratedFields(new Set(['name', 'body']))
+      if (result.name)        { setName(result.name)                               }
+      if (result.description) { setDescription(result.description)                }
+      if (result.model)       { setModel(result.model)                             }
+      if (result.tools?.length) { setToolsInput(result.tools.join(', '))           }
+      if (result.body)        { setBody(result.body)                               }
+      const fields = new Set<string>()
+      if (result.name)          fields.add('name')
+      if (result.description)   fields.add('description')
+      if (result.model)         fields.add('model')
+      if (result.tools?.length) fields.add('tools')
+      if (result.body)          fields.add('body')
+      setGeneratedFields(fields)
     } finally {
       setGenerating(false)
     }
@@ -79,32 +98,30 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
     setGeneratedFields((prev) => { const n = new Set(prev); n.delete(field); return n })
   }
 
-  const handleClose = (): void => {
-    if (isDirty(name, description, body)) {
-      if (!window.confirm(t('create.discardConfirm'))) return
-    }
-    reset()
-    onClose()
-  }
-
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setNameError('')
     const trimmed = name.trim()
     if (!trimmed || /[/\\]/.test(trimmed) || trimmed.startsWith('.')) {
-      setNameError(t('create.nameInvalid'))
+      setNameError('Name must be non-empty, without path separators or a leading dot.')
       return
     }
+    const tools = toolsInput
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean)
     setBusy(true)
     try {
-      const result = await window.electronAPI.skillAuthoring.createCommand({
-        name: trimmed,
-        description,
-        body,
+      const result = await window.electronAPI.skillAuthoring.createAgent({
+        name: trimmed, description, model, tools, body,
         workspacePath: selectedWorkspacePath
       })
       if (result.error === 'NAME_CONFLICT') {
-        setNameError(t('create.nameConflict', { type: 'command', name: trimmed }))
+        setNameError(`An agent named "${trimmed}" already exists in that location.`)
+        return
+      }
+      if (result.error === 'NAME_INVALID') {
+        setNameError('Name must be non-empty, without path separators or a leading dot.')
         return
       }
       if (result.error) {
@@ -124,7 +141,7 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-ag-border bg-ag-surface-2 px-6 py-5">
         <h2 className="text-base font-bold uppercase tracking-wide text-ag-text-1">
-          {t('create.newCommand')}
+          New Agent
         </h2>
         <button
           onClick={handleClose}
@@ -137,17 +154,17 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-y-auto">
         <div className="flex flex-col gap-5 p-6">
-          {/* Destination */}
+          {/* Destination workspace */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-wider text-ag-text-2">
-              {t('create.commandDestination')}
+              Workspace
             </label>
             <select
               value={selectedWorkspacePath}
               onChange={(e) => setSelectedWorkspacePath(e.target.value)}
               className="rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 focus:border-accent/60 focus:outline-none"
             >
-              <option value="">{t('create.commandDestGlobal')}</option>
+              <option value="">Global (~/.claude/agents/)</option>
               {workspaces.filter((ws) => ws.path).map((ws) => (
                 <option key={ws.id} value={ws.path}>
                   {ws.displayName || ws.name} ({ws.path.split('/').slice(-2).join('/')})
@@ -175,7 +192,7 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
                 <textarea
                   value={aiDesc}
                   onChange={(e) => setAiDesc(e.target.value)}
-                  placeholder="Describe the slash command (e.g. create a conventional commit with AI-generated message)"
+                  placeholder="What should this agent do? (e.g. TypeScript code reviewer that checks for security issues)"
                   rows={2}
                   className="w-full resize-none rounded-lg border border-ag-border bg-ag-surface px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent/60 focus:outline-none"
                 />
@@ -186,7 +203,9 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
                   disabled={!aiDesc.trim() || generating}
                   className="flex items-center gap-1.5 rounded-lg bg-accent/90 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {generating ? <><Loader2 size={12} className="animate-spin" /> Generating…</> : <><Wand2 size={12} /> Generate</>}
+                  {generating
+                    ? <><Loader2 size={12} className="animate-spin" /> Generating…</>
+                    : <><Wand2 size={12} /> Generate</>}
                 </button>
               </div>
             )}
@@ -195,7 +214,7 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
           {/* Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-wider text-ag-text-2 flex items-center gap-2">
-              {t('create.commandName')} <span className="text-red-400">*</span>
+              Name <span className="text-red-400">*</span>
               {generatedFields.has('name') && <AiBadge />}
             </label>
             <input
@@ -203,24 +222,53 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
               type="text"
               value={name}
               onChange={(e) => { setName(e.target.value); setNameError(''); clearGen('name') }}
-              placeholder={t('create.commandNamePlaceholder')}
+              placeholder="e.g. typescript-reviewer"
               className="rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent/60 focus:outline-none"
             />
-            {nameError && (
-              <p className="text-[11px] text-red-400">{nameError}</p>
-            )}
+            {nameError && <p className="text-[11px] text-red-400">{nameError}</p>}
           </div>
 
           {/* Description */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold uppercase tracking-wider text-ag-text-2">
-              {t('create.commandDescription')}
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-ag-text-2 flex items-center gap-2">
+              Description
+              {generatedFields.has('description') && <AiBadge />}
             </label>
             <input
               type="text"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('create.commandDescriptionPlaceholder')}
+              onChange={(e) => { setDescription(e.target.value); clearGen('description') }}
+              placeholder="One-line summary of what this agent does"
+              className="rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent/60 focus:outline-none"
+            />
+          </div>
+
+          {/* Model */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-ag-text-2 flex items-center gap-2">
+              Model
+              {generatedFields.has('model') && <AiBadge />}
+            </label>
+            <input
+              type="text"
+              value={model}
+              onChange={(e) => { setModel(e.target.value); clearGen('model') }}
+              placeholder="e.g. claude-sonnet-4-6"
+              className="rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent/60 focus:outline-none"
+            />
+          </div>
+
+          {/* Tools */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-ag-text-2 flex items-center gap-2">
+              Tools
+              {generatedFields.has('tools') && <AiBadge />}
+            </label>
+            <input
+              type="text"
+              value={toolsInput}
+              onChange={(e) => { setToolsInput(e.target.value); clearGen('tools') }}
+              placeholder="e.g. Bash, Read, Grep (comma-separated)"
               className="rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 text-sm text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent/60 focus:outline-none"
             />
           </div>
@@ -228,18 +276,13 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
           {/* Body */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-semibold uppercase tracking-wider text-ag-text-2 flex items-center gap-2">
-              {t('create.commandBody')} <span className="text-red-400">*</span>
+              Agent prompt (body)
               {generatedFields.has('body') && <AiBadge />}
             </label>
-            {!body.trim() && (
-              <p className="text-[11px] text-amber-500">
-                {t('create.bodyEmpty', { type: 'command' })}
-              </p>
-            )}
             <textarea
               value={body}
               onChange={(e) => { setBody(e.target.value); clearGen('body') }}
-              placeholder={t('create.commandBodyPlaceholder')}
+              placeholder="Detailed instructions for the agent…"
               rows={14}
               className="rounded-lg border border-ag-border bg-ag-surface-2 px-3 py-2 font-mono text-xs text-ag-text-1 placeholder:text-ag-text-3 focus:border-accent/60 focus:outline-none resize-y"
             />
@@ -253,14 +296,14 @@ export function CreateCommandDrawer({ workspaces, defaultWorkspacePath, open, on
             onClick={handleClose}
             className="rounded-lg border border-ag-border px-4 py-2 text-sm text-ag-text-2 transition-colors hover:bg-ag-surface hover:text-ag-text-1"
           >
-            {t('common.cancel')}
+            Cancel
           </button>
           <button
             type="submit"
             disabled={busy}
             className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-50 hover:opacity-90"
           >
-            {busy ? t('create.creating') : t('create.create')}
+            {busy ? 'Creating…' : 'Create'}
           </button>
         </div>
       </form>

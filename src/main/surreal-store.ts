@@ -32,6 +32,7 @@ export interface AgentMeta {
   notes: string
   tags: string[]
   avatarPath?: string
+  cardBackground?: string
   updatedAt: string
 }
 
@@ -68,6 +69,11 @@ export interface UserSource {
   addedAt: string
 }
 
+export interface AppSettings {
+  geminiApiKey?: string
+  anthropicApiKey?: string
+}
+
 interface StoreData {
   homeDir: string
   workspaceList: WorkspaceEntry[]
@@ -81,6 +87,7 @@ interface StoreData {
 
 const AGENTS_ROOM_DIR = join(homedir(), '.agents-room')
 const STORE_PATH = join(AGENTS_ROOM_DIR, 'store.json')
+const SETTINGS_PATH = join(AGENTS_ROOM_DIR, 'settings.json')
 
 const GLOBAL_ENTRY: WorkspaceEntry = {
   id: 'global',
@@ -124,11 +131,21 @@ function unpackWorkspace(e: WorkspaceEntry): WorkspaceEntry {
 }
 
 function packMeta(m: AgentMeta): AgentMeta {
-  return { ...m, sourcePath: rel(m.sourcePath), avatarPath: m.avatarPath ? rel(m.avatarPath) : undefined }
+  return {
+    ...m,
+    sourcePath: rel(m.sourcePath),
+    avatarPath: m.avatarPath ? rel(m.avatarPath) : undefined,
+    cardBackground: m.cardBackground ? rel(m.cardBackground) : undefined
+  }
 }
 
 function unpackMeta(m: AgentMeta): AgentMeta {
-  return { ...m, sourcePath: abs(m.sourcePath), avatarPath: m.avatarPath ? abs(m.avatarPath) : undefined }
+  return {
+    ...m,
+    sourcePath: abs(m.sourcePath),
+    avatarPath: m.avatarPath ? abs(m.avatarPath) : undefined,
+    cardBackground: m.cardBackground ? abs(m.cardBackground) : undefined
+  }
 }
 
 function packTrash(t: TrashRecord): TrashRecord {
@@ -409,4 +426,75 @@ export function updateUserSource(
   if (meta.description !== undefined) entry.description = meta.description
   writeStore(data)
   return entry
+}
+
+// ── App settings ──────────────────────────────────────────────────────────────
+//
+// API keys are stored encrypted using the same safeStorage pattern as the GitHub
+// token: "enc:<base64>" when OS keychain is available, "plain:<value>" otherwise.
+// settings.json stores encrypted blobs — callers always receive plaintext.
+
+/** Internal shape stored in settings.json (values are encrypted blobs). */
+interface SettingsFile {
+  geminiApiKey?: string
+  anthropicApiKey?: string
+}
+
+function encryptValue(value: string): string {
+  if (safeStorage.isEncryptionAvailable()) {
+    return ENC_PREFIX + safeStorage.encryptString(value).toString('base64')
+  }
+  return PLAIN_PREFIX + value
+}
+
+function decryptValue(raw: string): string | null {
+  if (raw.startsWith(ENC_PREFIX)) {
+    try {
+      return safeStorage.decryptString(Buffer.from(raw.slice(ENC_PREFIX.length), 'base64'))
+    } catch {
+      return null
+    }
+  }
+  if (raw.startsWith(PLAIN_PREFIX)) {
+    return raw.slice(PLAIN_PREFIX.length)
+  }
+  // Legacy plaintext without prefix — return as-is (will be re-encrypted on next save)
+  return raw
+}
+
+function readSettingsFile(): SettingsFile {
+  try {
+    const raw = readFileSync(SETTINGS_PATH, 'utf-8')
+    return JSON.parse(raw) as SettingsFile
+  } catch {
+    return {}
+  }
+}
+
+export function getSettings(): AppSettings {
+  const file = readSettingsFile()
+  return {
+    geminiApiKey:    file.geminiApiKey    ? decryptValue(file.geminiApiKey)    ?? undefined : undefined,
+    anthropicApiKey: file.anthropicApiKey ? decryptValue(file.anthropicApiKey) ?? undefined : undefined
+  }
+}
+
+export function updateSettings(updates: Partial<AppSettings>): void {
+  const current = readSettingsFile()
+  const next: SettingsFile = { ...current }
+
+  if ('geminiApiKey' in updates) {
+    const val = updates.geminiApiKey
+    if (!val) delete next.geminiApiKey
+    else next.geminiApiKey = encryptValue(val)
+  }
+
+  if ('anthropicApiKey' in updates) {
+    const val = updates.anthropicApiKey
+    if (!val) delete next.anthropicApiKey
+    else next.anthropicApiKey = encryptValue(val)
+  }
+
+  mkdirSync(AGENTS_ROOM_DIR, { recursive: true })
+  writeFileSync(SETTINGS_PATH, JSON.stringify(next, null, 2), 'utf-8')
 }
