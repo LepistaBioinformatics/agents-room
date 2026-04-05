@@ -14,7 +14,7 @@ import { randomUUID } from 'crypto'
 
 const AVATARS_DIR = join(homedir(), '.agents-room', 'avatars')
 
-const IMAGE_MODEL = 'gemini-2.0-flash-preview-image-generation'
+const IMAGE_MODEL = 'gemini-3.1-flash-image-preview'
 
 export type ImageGenErrorCode =
   | 'API_KEY_NOT_CONFIGURED'
