@@ -2,7 +2,7 @@
 
 > A visual command center for everyone running multi-agent teams with Claude Code.
 
-If you use Claude Code across multiple projects, you already know how fast things get out of hand. Agents scattered across repositories. No way to see which agent calls which. Settings files edited by hand. GitHub tokens stored in plain text. Agents Room fixes all of that — in one desktop app, on your machine, completely offline.
+If you use Claude Code across multiple projects, you already know how fast things get out of hand. Agents scattered across repositories. No way to see which agent calls which. Settings files edited by hand. API keys stored in plain text. Agents Room fixes all of that — in one desktop app, on your machine, completely offline.
 
 ---
 
@@ -30,6 +30,30 @@ Open the app and see every Claude Code workspace on your machine laid out on a s
 
 ## What Makes It Different
 
+### Create agents, skills, and commands from the UI
+
+No more editing markdown files by hand. Use the **+** button on any workspace group to create agents, skills, and commands directly from the app. The file is written for you in the right place with the correct frontmatter format.
+
+<!-- SCREENSHOT: CreateAgentDrawer open with name, description, model, tools, and body fields filled in -->
+![Create Agent](.github/screenshots/create-agent.png)
+
+### AI-assisted creation
+
+Enable the AI toggle in any creation drawer and describe what you want in plain language. Claude generates the name, description, model selection, tools list, and full system prompt body. Fields marked with an **AI** badge were generated — edit them freely and the badge clears.
+
+<!-- SCREENSHOT: CreateAgentDrawer with AI toggle on, description field filled, and AI badges on the generated fields -->
+![AI-Assisted Creation](.github/screenshots/ai-assisted-creation.png)
+
+### AI image generation for agent cards
+
+Give your agents a visual identity. From the agent detail drawer, click **Generate avatar with AI** or add a **Card Background** to generate images directly with Google Gemini. Generated images are saved locally and displayed on the canvas card with a subtle overlay for readability.
+
+<!-- SCREENSHOT: Agent detail drawer showing the Generate Avatar and Card Background sections with a preview thumbnail -->
+![Image Generation](.github/screenshots/image-generation.png)
+
+<!-- SCREENSHOT: Canvas view showing agent cards with AI-generated avatars and card backgrounds -->
+![Cards with Backgrounds](.github/screenshots/cards-with-backgrounds.png)
+
 ### Annotations without touching your files
 
 You can add notes, tags, and avatars to any agent — without modifying the `.md` file. Your notes are stored separately in `~/.agents-room/store.json`. The agent files stay exactly as they are. Commit them, share them, and your personal context stays on your machine.
@@ -41,17 +65,23 @@ Agents Room scans every agent's body and description, detects mentions of other 
 <!-- SCREENSHOT: Connection lines between agents, highlighting an orchestrator agent connected to multiple sub-agents -->
 ![Agent Relationships](.github/screenshots/agent-relationships.png)
 
-### Your GitHub token — encrypted, not exposed
+### All API keys encrypted, not exposed
 
-To browse and install skills from GitHub, Agents Room optionally uses a Personal Access Token for higher API rate limits. That token is stored using your OS's native credential store:
+All credentials are stored using your OS's native credential store (`safeStorage`):
 
 - **Windows** → DPAPI
 - **Linux** → libsecret (system keyring)
 
-It never touches the network except to call GitHub's own API. It's masked in the UI (shows only first + last 4 characters). You can clear it at any time.
+| Key | Used for |
+|-----|---------|
+| Google Gemini API Key | AI image generation |
+| Anthropic API Key | AI-assisted agent/skill/command creation |
+| GitHub Token | Skill browser rate limits + private repos |
 
-<!-- SCREENSHOT: GitHub Token modal showing the masked token field and encrypted storage notice -->
-![GitHub Token](.github/screenshots/github-token.png)
+None of the keys are ever stored in plain text. They are masked in the UI and encrypted at rest in `~/.agents-room/settings.json`.
+
+<!-- SCREENSHOT: Settings drawer open showing Gemini, Anthropic, and GitHub token fields with Configured badges and setup instructions -->
+![Settings Drawer](.github/screenshots/settings-drawer.png)
 
 ### Skill installation with trust tiers
 
@@ -81,12 +111,17 @@ All paths in `store.json` are stored relative to your home directory (`~/...`). 
 ## Features at a Glance
 
 - **Multi-workspace canvas** — drag, pan, zoom across all your Claude Code projects
-- **Agent cards** — name, model badge (Opus / Sonnet / Haiku), description, tools, tags, avatar
+- **Agent cards** — name, model badge (Opus / Sonnet / Haiku), description, tools, tags, avatar, and AI-generated backgrounds
 - **Auto relationship lines** — heuristic detection, no setup required
+- **Create agents / skills / commands** — write structured files from the UI, no markdown editing required
+- **AI-assisted creation** — Claude generates name, description, model, tools, and body from a plain-language description
+- **AI image generation** — Google Gemini generates avatars and card backgrounds for your agents
 - **Annotations** — notes, tags, custom avatars stored outside your agent files
-- **CLAUDE.md viewer** — read workspace instructions inline
+- **Unified Settings** — manage all API keys (Gemini, Anthropic, GitHub) in one place, all encrypted
+- **CLAUDE.md editor** — read and edit workspace instructions inline
 - **Skill browser** — browse, install, and track skills with trust tier badges
-- **Encrypted token storage** — OS keychain-backed GitHub token, never plain text
+- **Global search (Ctrl+K)** — search across all agents, skills, and commands
+- **Tag filtering** — filter the canvas by workspace or agent tags
 - **Trash & restore** — safe deletion with full recovery
 - **Fully local** — no cloud sync, no account, no telemetry
 
@@ -137,8 +172,8 @@ sudo dpkg -i agents-room_x.y.z_amd64.deb
 #### Clone and install
 
 ```bash
-git clone https://github.com/your-org/agent-room-ui.git
-cd agent-room-ui
+git clone https://github.com/LepistaBioinformatics/agents-room.git
+cd agents-room
 yarn
 ```
 
@@ -195,24 +230,48 @@ Click any agent card to open the detail drawer. You'll see:
 - Full frontmatter fields (model, tools, etc.)
 - Complete markdown body with syntax highlighting
 - Notes and tags (yours, not the file's)
-- Skill origin and provenance (for skills)
+- Relationship panel — which agents reference this one
+- Avatar and card background controls
 
 <!-- SCREENSHOT: Detail drawer open on the right side showing agent metadata, description, and annotation fields -->
 ![Agent Detail](.github/screenshots/agent-detail.png)
 
-### Managing a GitHub Token
+### Creating an agent with AI assistance
 
-1. Open **Settings → GitHub Token**
-2. Paste your Personal Access Token (needs `public_repo` scope for rate limits)
-3. The token is encrypted and saved immediately
-4. To remove it, click **Clear Token**
+1. Click **+** on the Agents subgroup header in any workspace group box
+2. Enable the **AI** toggle and describe the agent you want
+3. Click **Generate** — Claude fills in all fields automatically
+4. Review, adjust, and click **Create**
+
+The agent file is written to `<workspace>/.claude/agents/<name>.md` with the correct frontmatter.
+
+### Generating an avatar or card background
+
+1. Open an agent's detail drawer
+2. Click **Generate avatar with AI** below the portrait, or the **Generate** button in the Card Background section
+3. Review the auto-generated prompt (based on the agent's name, description, and tools) and adjust if needed
+4. Click **Generate** — the image is saved locally and applied immediately
+
+> Requires a Google Gemini API key configured in Settings.
+
+### Configuring API keys
+
+Open **Settings** (gear icon in the toolbar). Each section includes step-by-step instructions with a direct link to the provider's console:
+
+| Key | Where to get it |
+|-----|----------------|
+| Google Gemini | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| Anthropic | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
+| GitHub Token | [github.com/settings/tokens](https://github.com/settings/tokens) — scope: `public_repo` |
+
+All keys are encrypted at rest using your OS keychain. They are never stored in plain text.
 
 ### Installing a skill
 
-1. Open the **Skills** panel
+1. Open the **Skills** panel (book icon in the toolbar)
 2. Browse from the trusted Anthropic catalog, or paste any GitHub URL
 3. Review the trust tier badge before confirming
-4. The skill is installed to your selected workspace's `.claude/skills/` folder
+4. The skill is installed to `~/.claude/skills/<name>/`
 
 ---
 
@@ -221,23 +280,30 @@ Click any agent card to open the detail drawer. You'll see:
 | Data | Location |
 |------|----------|
 | App config + annotations | `~/.agents-room/store.json` |
-| Agent avatars | `~/.agents-room/avatars/` |
+| API keys | `~/.agents-room/settings.json` (encrypted) |
+| Agent avatars + backgrounds | `~/.agents-room/avatars/` |
 | Global agents | `~/.claude/agents/` |
 | Workspace agents | `<project>/.claude/agents/` |
 | Trash | `.claude/.trash/` inside each workspace |
 
-Nothing is sent externally. GitHub API calls are made only when you use the skill browser, and only from your machine using your own token.
+Nothing is sent externally. GitHub and AI API calls are made only when you explicitly use those features, directly from your machine using your own keys.
 
 ---
 
 ## Project Status
 
-Agents Room is in active development. The canvas, workspace management, agent display, annotations, and skill browser are functional today (v1 MVP). Planned next:
+Agents Room is in active development. Current version: **v0.3.x**.
 
-- Agent file editing from within the app
-- Filtering and search across all workspaces
-- DAG view for deeper relationship exploration
-- Export canvas as image
+| Feature | Status |
+|---------|--------|
+| Canvas + workspace management | ✅ v0.1 |
+| Skill browser + install | ✅ v0.1 |
+| Agent/skill/command creation | ✅ v0.2 |
+| AI-assisted creation | ✅ v0.3 |
+| AI image generation | ✅ v0.3 |
+| Unified encrypted settings | ✅ v0.3 |
+| Agent dependency graph (DAG) | Planned |
+| Cloud sync | Planned |
 
 ---
 
