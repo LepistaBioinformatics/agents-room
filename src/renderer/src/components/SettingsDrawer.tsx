@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { X, Settings, KeyRound, CheckCircle2, Github } from 'lucide-react'
+import { X, Settings, KeyRound, CheckCircle2, Github, ExternalLink } from 'lucide-react'
 import { DrawerShell } from './ui/DrawerShell'
 import type { AppSettings } from '../types/agent'
 
@@ -145,6 +145,11 @@ export function SettingsDrawer({ onClose }: Props): JSX.Element {
             <p className="text-[11px] leading-relaxed text-ag-text-3">
               Required for AI image generation (avatars &amp; card backgrounds).
             </p>
+            <ol className="space-y-1 text-[11px] leading-relaxed text-ag-text-3 list-decimal list-inside">
+              <li>Access <button onClick={() => window.electronAPI.app.openExternal('https://aistudio.google.com/apikey')} className="text-accent hover:underline inline-flex items-center gap-0.5">Google AI Studio <ExternalLink size={10} /></button></li>
+              <li>Click <span className="font-medium text-ag-text-2">Get API key</span> and create or select a project</li>
+              <li>Copy the key and paste it below</li>
+            </ol>
             <input
               type="password"
               value={geminiInput}
@@ -196,6 +201,11 @@ export function SettingsDrawer({ onClose }: Props): JSX.Element {
             <p className="text-[11px] leading-relaxed text-ag-text-3">
               Required for AI-assisted agent, skill, and command creation.
             </p>
+            <ol className="space-y-1 text-[11px] leading-relaxed text-ag-text-3 list-decimal list-inside">
+              <li>Access <button onClick={() => window.electronAPI.app.openExternal('https://console.anthropic.com/settings/keys')} className="text-accent hover:underline inline-flex items-center gap-0.5">Anthropic Console <ExternalLink size={10} /></button></li>
+              <li>Click <span className="font-medium text-ag-text-2">Create Key</span> and set a name</li>
+              <li>Copy the key and paste it below — it won't be shown again</li>
+            </ol>
             <input
               type="password"
               value={anthropicInput}
@@ -255,6 +265,11 @@ export function SettingsDrawer({ onClose }: Props): JSX.Element {
             <p className="text-[11px] leading-relaxed text-ag-text-3">
               Required for installing skills from private repositories and avoiding GitHub API rate limits.
             </p>
+            <ol className="space-y-1 text-[11px] leading-relaxed text-ag-text-3 list-decimal list-inside">
+              <li>Access <button onClick={() => window.electronAPI.app.openExternal('https://github.com/settings/tokens/new?scopes=repo,read:org&description=Agents+Room')} className="text-accent hover:underline inline-flex items-center gap-0.5">GitHub → New token (classic) <ExternalLink size={10} /></button></li>
+              <li>Select scopes: <span className="font-mono font-medium text-ag-text-2">repo</span> (for private repos) or no scopes for public only</li>
+              <li>Click <span className="font-medium text-ag-text-2">Generate token</span>, copy and paste below</li>
+            </ol>
             {githubMasked && (
               <p className="font-mono text-[11px] text-ag-text-3 truncate">{githubMasked}</p>
             )}

@@ -1,4 +1,4 @@
-import { ipcMain, dialog, app } from 'electron'
+import { ipcMain, dialog, app, shell } from 'electron'
 import { homedir } from 'os'
 import { join, extname } from 'path'
 import { mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync, readdirSync, cpSync } from 'fs'
@@ -634,6 +634,7 @@ export function registerIpcHandlers(): void {
   // ── App info + updater ──────────────────────────────────────────────────────
 
   ipcMain.handle('app:get-version', () => app.getVersion())
+  ipcMain.on('app:open-external', (_e, url: string) => { shell.openExternal(url) })
   ipcMain.on('updater:check', () => checkForUpdates())
   ipcMain.on('updater:install', () => quitAndInstall())
 

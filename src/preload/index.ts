@@ -26,6 +26,7 @@ export interface GitHubTokenStatus {
 export interface ElectronAPI {
   app: {
     getVersion: () => Promise<string>
+    openExternal: (url: string) => void
   }
   updater: {
     check: () => void
@@ -113,7 +114,8 @@ export interface ElectronAPI {
 
 const api: ElectronAPI = {
   app: {
-    getVersion: () => ipcRenderer.invoke('app:get-version')
+    getVersion: () => ipcRenderer.invoke('app:get-version'),
+    openExternal: (url: string) => ipcRenderer.send('app:open-external', url)
   },
   updater: {
     check: () => ipcRenderer.send('updater:check'),
