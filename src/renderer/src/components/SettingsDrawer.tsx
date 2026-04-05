@@ -267,7 +267,7 @@ export function SettingsDrawer({ onClose }: Props): JSX.Element {
             </p>
             <ol className="space-y-1 text-[11px] leading-relaxed text-ag-text-3 list-decimal list-inside">
               <li>Access <button onClick={() => window.electronAPI.app.openExternal('https://github.com/settings/tokens/new?scopes=repo,read:org&description=Agents+Room')} className="text-accent hover:underline inline-flex items-center gap-0.5">GitHub → New token (classic) <ExternalLink size={10} /></button></li>
-              <li>Select scopes: <span className="font-mono font-medium text-ag-text-2">repo</span> (for private repos) or no scopes for public only</li>
+              <li>Select scopes: <span className="font-mono font-medium text-ag-text-2">public_repo</span> (for public repos) or <span className="font-mono font-medium text-ag-text-2">repo</span> for private</li>
               <li>Click <span className="font-medium text-ag-text-2">Generate token</span>, copy and paste below</li>
             </ol>
             {githubMasked && (
