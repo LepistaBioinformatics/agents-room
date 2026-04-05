@@ -58,10 +58,10 @@ function SubgroupLabel({ color, label, count, onAdd }: { color: string; label: s
         <button
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onAdd() }}
-          className="flex items-center justify-center rounded-md p-0.5 opacity-60 transition-opacity hover:opacity-100 hover:bg-current/10"
-          title="New"
+          className="flex items-center gap-1 rounded-md border border-current/30 bg-current/10 px-2 py-0.5 text-[10px] font-semibold transition-colors hover:bg-current/20"
         >
-          <Plus size={12} />
+          <Plus size={11} strokeWidth={2.5} />
+          New
         </button>
       )}
     </div>
