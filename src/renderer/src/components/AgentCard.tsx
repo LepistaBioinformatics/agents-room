@@ -66,13 +66,13 @@ export function AgentCard({ agent, isSelected, isFlashing, onOpen, onContextMenu
       {bgDataUrl && <div className="absolute inset-0 bg-black/60 z-0" />}
 
       {/* Portrait */}
-      <div className="relative h-16 shrink-0 overflow-hidden z-10">
+      <div className="relative h-28 shrink-0 overflow-hidden z-10">
         {agent.meta?.avatarPath ? (
           <AvatarImg
             path={agent.meta.avatarPath}
             fill
             rounded="none"
-            className="h-16"
+            className="h-28"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-accent-surface">
